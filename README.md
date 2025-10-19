@@ -258,6 +258,39 @@ If you encounter any issues:
 3. Verify your environment setup
 4. Check your API key and internet connection
 
+## 🚀 Deployment
+
+Ready to deploy? Check out our [Deployment Guide](DEPLOYMENT.md) for detailed instructions.
+
+### Quick Deploy to Render
+
+1. **Fork/Clone** this repository
+2. **Get Groq API Key** from [Groq Console](https://console.groq.com)
+3. **Deploy to Render**:
+   - Connect your GitHub repo
+   - Set `GROQ_API_KEY` environment variable
+   - Deploy automatically!
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+### Other Platforms
+- **Vercel**: `vercel --prod`
+- **Railway**: `railway deploy`
+- **Docker**: `docker-compose up --build`
+- **Heroku**: Push to Heroku with buildpack
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for platform-specific instructions.
+
+## 🔄 Updates
+
+This project is actively maintained. To get the latest updates:
+
+```bash
+git pull origin main
+npm install
+npm run build
+```
+
 ---
 
 **Made with 🐝 using Bee Agent Framework**

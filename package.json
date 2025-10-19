@@ -2,11 +2,40 @@
   "type": "module",
   "name": "bee-agent-chat",
   "version": "1.0.0",
+  "description": "Interactive chat interface powered by Bee Agent Framework with Groq LLaMA 3.1",
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy-static",
+    "copy-static": "node -e \"require('fs').cpSync('public', 'dist/public', {recursive: true})\"",
     "start": "node dist/server.js",
-    "test": "tsx src/test.ts"
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "test": "tsx src/test.ts",
+    "test:prod": "NODE_ENV=production tsx src/test.ts",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "postinstall": "npm run build",
+    "healthcheck": "curl -f http://localhost:$PORT/health || exit 1"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "bee-agent",
+    "groq",
+    "llama",
+    "typescript",
+    "express",
+    "socket.io"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbdulAbdullah/bee_agent_framework.git"
   },
   "dependencies": {
     "@ai-sdk/groq": "^1.2.9",

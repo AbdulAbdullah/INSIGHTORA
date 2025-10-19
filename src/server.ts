@@ -18,9 +18,14 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '../public')));
+const staticPath = NODE_ENV === 'production' 
+  ? path.join(__dirname, 'public')  // In production, public is copied to dist/
+  : path.join(__dirname, '../public');
+  
+app.use(express.static(staticPath));
 
 // Create agent service instance
 const agentService = new BeeAgentService();
@@ -82,7 +87,32 @@ io.on('connection', (socket) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    version: '1.0.0'
+  });
+});
+
+// API info endpoint
+app.get('/api/info', (req, res) => {
+  res.json({
+    name: 'Bee Agent Chat API',
+    version: '1.0.0',
+    environment: NODE_ENV,
+    features: ['web-search', 'weather', 'chat'],
+    status: 'running'
+  });
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
 });
 
 // Start server
