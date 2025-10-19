@@ -31,6 +31,7 @@ This guide covers deploying your Bee Agent Chat application to various platforms
 4. **Environment Variables**:
    - `NODE_ENV` = `production`
    - `GROQ_API_KEY` = `your_groq_api_key`
+   - `ALLOWED_ORIGINS` = `https://yourdomain.com` (your actual domain)
    - `PORT` = `3000` (auto-set by Render)
 
 5. **Deploy**: Click "Create Web Service"
@@ -132,7 +133,18 @@ const healthCheck = async () => {
 1. **Environment Variables**: Never commit `.env` to git
 2. **API Keys**: Use platform environment variable management
 3. **HTTPS**: All major platforms provide SSL by default
-4. **CORS**: Configure if needed for custom domains
+4. **CORS**: Configure `ALLOWED_ORIGINS` for your domain only
+5. **Rate Limiting**: Built-in protection against abuse (20 req/min per user)
+6. **Input Validation**: All user inputs are sanitized and validated
+7. **Content Security Policy**: Helmet.js provides security headers
+8. **Docker Security**: Non-root user and minimal attack surface
+
+### Security Headers Included
+- Content Security Policy (CSP)
+- X-Frame-Options
+- X-Content-Type-Options
+- X-XSS-Protection
+- Strict-Transport-Security (HSTS)
 
 ## 🚨 Troubleshooting
 

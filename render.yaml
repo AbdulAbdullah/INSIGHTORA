@@ -2,7 +2,7 @@ services:
   - type: web
     name: bee-agent-chat
     runtime: node
-    plan: starter  # or standard/pro based on your needs
+    plan: starter 
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
@@ -11,8 +11,8 @@ services:
       - key: PORT
         value: 3000
       - key: GROQ_API_KEY
-        sync: false  # You'll set this in Render dashboard
+        sync: false 
     healthCheckPath: /health
     autoDeploy: true
     rootDir: .
-    region: oregon  # or singapore, frankfurt based on your preference
+    region: oregon  
