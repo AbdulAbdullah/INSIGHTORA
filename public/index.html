@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐝 Bee Agent Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chat-header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.user {
+            background: #007AFF;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agent {
+            background: #f1f1f1;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.agent.thinking {
+            background: #FFF3CD;
+            color: #856404;
+            font-style: italic;
+        }
+
+        .message.agent.tool {
+            background: #D4EDDA;
+            color: #155724;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 12px 18px;
+            background: #f1f1f1;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #messageInput {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #messageInput:focus {
+            border-color: #007AFF;
+        }
+
+        #sendBtn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        #sendBtn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #sendBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+
+        .status-bar.connected {
+            color: #28a745;
+        }
+
+        .status-bar.error {
+            color: #dc3545;
+            background: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🐝 Bee Agent Chat</h1>
+            <div class="subtitle">Powered by Groq LLaMA 3.1 • Search & Weather Tools</div>
+            <button class="clear-btn" onclick="clearMemory()">Clear Memory</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent">
+                Hello! I'm your Bee Agent powered by Groq's lightning-fast LLaMA 3.1 model. 
+                <br><br>
+                I can help you with:
+                <br>• Web searches using DuckDuckGo
+                <br>• Current weather information
+                <br>• General questions and conversations
+                <br><br>
+                Ask me anything!
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span> Thinking...
+        </div>
+        
+        <div class="chat-input">
+            <div class="input-container">
+                <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            </div>
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="status-bar" id="statusBar">
+            Connecting...
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const statusBar = document.getElementById('statusBar');
+
+        // Connection status
+        socket.on('connect', () => {
+            statusBar.textContent = 'Connected • Ready to chat';
+            statusBar.className = 'status-bar connected';
+        });
+
+        socket.on('disconnect', () => {
+            statusBar.textContent = 'Disconnected • Trying to reconnect...';
+            statusBar.className = 'status-bar error';
+        });
+
+        // Message handling
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Clear input and disable send button
+            messageInput.value = '';
+            sendBtn.disabled = true;
+            
+            // Send to server
+            socket.emit('chat_message', { message });
+        }
+
+        function addMessage(content, type, isThinking = false, isTool = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (isThinking) messageDiv.classList.add('thinking');
+            if (isTool) messageDiv.classList.add('tool');
+            
+            messageDiv.innerHTML = content.replace(/\n/g, '<br>');
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function clearMemory() {
+            socket.emit('clear_memory');
+            chatMessages.innerHTML = `
+                <div class="message agent">
+                    Memory cleared! Starting fresh conversation...
+                </div>
+            `;
+        }
+
+        // Socket event handlers
+        socket.on('agent_typing', (isTyping) => {
+            typingIndicator.classList.toggle('show', isTyping);
+            if (isTyping) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+
+        socket.on('agent_update', (data) => {
+            let content = data.content;
+            let isThinking = false;
+            let isTool = false;
+
+            switch (data.type) {
+                case 'thought':
+                    content = `Thinking: ${content}`;
+                    isThinking = true;
+                    break;
+                case 'tool_name':
+                    content = `Using tool: ${content}`;
+                    isTool = true;
+                    break;
+                case 'tool_input':
+                    content = `Tool input: ${content}`;
+                    isTool = true;
+                    break;
+                case 'tool_output':
+                    content = `Tool output: ${content}`;
+                    isTool = true;
+                    break;
+            }
+
+            addMessage(content, 'agent', isThinking, isTool);
+        });
+
+        socket.on('agent_response', (data) => {
+            addMessage(data.message, 'agent');
+            sendBtn.disabled = false;
+        });
+
+        socket.on('agent_error', (data) => {
+            addMessage(`Error: ${data.message}`, 'agent');
+            sendBtn.disabled = false;
+        });
+
+        socket.on('memory_cleared', () => {
+            statusBar.textContent = 'Connected • Memory cleared';
+            statusBar.className = 'status-bar connected';
+            setTimeout(() => {
+                statusBar.textContent = 'Connected • Ready to chat';
+            }, 2000);
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
+    </script>
+</body>
+</html>
