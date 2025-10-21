@@ -1,4 +1,4 @@
-# Smart Business Intelligence Platform
+# Smart Business Intelligence Platform(INSIGHTORA) kinda like insight oracle
 
 A comprehensive **Power BI-like** Business Intelligence platform that transforms how users interact with their data. Ask questions in natural language and get instant insights with interactive visualizations, real-time analytics, and enterprise-grade security.
 
