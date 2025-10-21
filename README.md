@@ -1001,7 +1001,7 @@ cd bee_agent_framework
 npm install && npm run dev
 ```
 
-**🚀 Join thousands of developers building better BI tools with AI!**
+**Join thousands of developers building better BI tools with AI!**
 
 ---
 
