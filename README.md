@@ -1,6 +1,6 @@
-# 🐝 Bee Agent Chat
+# Smart Business Intelligence Assistant
 
-A modern, interactive chat interface powered by the Bee Agent Framework with Groq's lightning-fast LLaMA 3.1 model. Built with TypeScript, Express, and Socket.IO for real-time conversations.
+A professional AI-powered Business Intelligence Assistant built with the Bee Agent Framework, featuring advanced data analysis, interactive chat capabilities, and comprehensive API documentation.
 
 ## ✨ Features
 
