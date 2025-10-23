@@ -1,65 +1,126 @@
-# Smart Business Intelligence Platform(INSIGHTORA) kinda like insight oracle
+# Smart BI Platform# Smart Business Intelligence Platform(INSIGHTORA) kinda like insight oracle
 
-A comprehensive **Power BI-like** Business Intelligence platform that transforms how users interact with their data. Ask questions in natural language and get instant insights with interactive visualizations, real-time analytics, and enterprise-grade security.
 
-## Core Features
 
-### � **Enterprise Authentication & Security**
-- **Multi-Factor Authentication**: Email OTP verification for registration & login
-- **Device Trust Management**: Remember trusted devices for 30 days
-- **Role-Based Access Control**: Individual and Business account types
-- **Security Features**: Rate limiting, account lockout, audit logging
-- **Professional Email System**: Branded templates for all communications
+A modern, AI-powered Business Intelligence platform built with Python FastAPI backend.A comprehensive **Power BI-like** Business Intelligence platform that transforms how users interact with their data. Ask questions in natural language and get instant insights with interactive visualizations, real-time analytics, and enterprise-grade security.
 
-### **Multi-Source Data Connectivity**
-- **Database Support**: PostgreSQL, MySQL, SQL Server, Oracle, MongoDB
-- **File Processing**: CSV, Excel, JSON uploads with automatic schema detection
-- **Real-time Streaming**: Live data connections with WebSocket support
+
+
+## Project Structure## Core Features
+
+
+
+```### � **Enterprise Authentication & Security**
+
+smart-bi-platform/- **Multi-Factor Authentication**: Email OTP verification for registration & login
+
+├── backend/                 # Python FastAPI backend- **Device Trust Management**: Remember trusted devices for 30 days
+
+│   ├── app/                # Application code- **Role-Based Access Control**: Individual and Business account types
+
+│   ├── alembic/            # Database migrations- **Security Features**: Rate limiting, account lockout, audit logging
+
+│   ├── requirements.txt    # Python dependencies- **Professional Email System**: Branded templates for all communications
+
+│   ├── docker-compose.yml  # Development environment
+
+│   └── README.md           # Backend documentation### **Multi-Source Data Connectivity**
+
+├── BI_PROJECT_PLAN.md      # Complete project roadmap- **Database Support**: PostgreSQL, MySQL, SQL Server, Oracle, MongoDB
+
+└── old_typescript_backend/ # Archived TypeScript backend- **File Processing**: CSV, Excel, JSON uploads with automatic schema detection
+
+```- **Real-time Streaming**: Live data connections with WebSocket support
+
 - **Cloud Integration**: AWS, Google Cloud, Azure data sources
-- **API Connections**: REST APIs and webhook integrations
 
-### **AI-Powered Analytics Engine**
+## Quick Start- **API Connections**: REST APIs and webhook integrations
+
+
+
+### Backend (Python FastAPI)### **AI-Powered Analytics Engine**
+
 - **Natural Language Queries**: "What were my top products last month?"
-- **Smart SQL Generation**: AI converts conversations to optimized queries
-- **Automated Insights**: Pattern detection, anomaly alerts, trend analysis
-- **Predictive Analytics**: Forecasting and recommendation engine
-- **Context Awareness**: Remembers conversation history and preferences
 
-### **Advanced Visualizations**
-- **20+ Chart Types**: Bar, line, pie, heatmaps, geographic maps, funnel charts
+```bash- **Smart SQL Generation**: AI converts conversations to optimized queries
+
+cd backend- **Automated Insights**: Pattern detection, anomaly alerts, trend analysis
+
+python -m venv venv- **Predictive Analytics**: Forecasting and recommendation engine
+
+source venv/Scripts/activate  # Windows- **Context Awareness**: Remembers conversation history and preferences
+
+pip install -r requirements.txt
+
+uvicorn app.main:app --reload### **Advanced Visualizations**
+
+```- **20+ Chart Types**: Bar, line, pie, heatmaps, geographic maps, funnel charts
+
 - **Interactive Dashboards**: Drag-and-drop builder with real-time updates
-- **Drill-Down Capabilities**: Click to explore deeper data insights
-- **Mobile Responsive**: Full functionality on all devices
-- **Export Options**: PDF reports, Excel exports, scheduled delivery
 
-### **Enterprise Features**
-- **Collaboration Tools**: Share dashboards, team workspaces, comments
-- **Performance Optimization**: Caching, query optimization, auto-scaling
-- **Monitoring & Alerts**: Real-time system health, custom notifications
-- **Compliance Ready**: GDPR, SOC2, enterprise security standards
+**API Documentation**: http://localhost:8000/docs- **Drill-Down Capabilities**: Click to explore deeper data insights
+
+- **Mobile Responsive**: Full functionality on all devices
+
+### Features- **Export Options**: PDF reports, Excel exports, scheduled delivery
+
+
+
+- 🤖 **AI-Powered Analytics**: Natural language to SQL with LangChain + Groq### **Enterprise Features**
+
+- 📊 **Interactive Visualizations**: plotly, matplotlib, seaborn- **Collaboration Tools**: Share dashboards, team workspaces, comments
+
+- 🔗 **Multi-Database Support**: PostgreSQL, MySQL, SQL Server, Oracle- **Performance Optimization**: Caching, query optimization, auto-scaling
+
+- 📁 **File Processing**: CSV, Excel, JSON, Parquet- **Monitoring & Alerts**: Real-time system health, custom notifications
+
+- 🔐 **Enterprise Security**: JWT authentication, bcrypt encryption- **Compliance Ready**: GDPR, SOC2, enterprise security standards
+
+- ⚡ **High Performance**: Async FastAPI, Redis caching, Celery tasks
 
 ## Technology Stack
 
+## Configuration
+
 ### **Backend Infrastructure**
-- **Runtime**: Node.js 18+ with TypeScript 5.0+
-- **Framework**: Express.js with Socket.IO for real-time features
-- **Database**: PostgreSQL 15+ with Prisma ORM for type-safe operations
-- **Authentication**: JWT tokens with multi-factor authentication
+
+The backend uses the same database and API keys as your existing setup:- **Runtime**: Node.js 18+ with TypeScript 5.0+
+
+- Database: `bi_assistant_db` (PostgreSQL)- **Framework**: Express.js with Socket.IO for real-time features
+
+- Groq API: LLaMA 3.1 8B Instant model- **Database**: PostgreSQL 15+ with Prisma ORM for type-safe operations
+
+- JWT secrets aligned with existing authentication- **Authentication**: JWT tokens with multi-factor authentication
+
 - **Caching**: Redis for high-performance data caching
-- **AI Engine**: Groq LLaMA 3.1 for natural language processing
+
+## Development- **AI Engine**: Groq LLaMA 3.1 for natural language processing
+
 - **Email Service**: Nodemailer with professional templates
-- **Security**: Helmet, rate limiting, input validation, CORS
 
-### **Frontend Technologies** 
+See `backend/README.md` for detailed setup and development instructions.- **Security**: Helmet, rate limiting, input validation, CORS
+
+
+
+## Architecture### **Frontend Technologies** 
+
 - **Framework**: Next.js 14+ with React 18+ and TypeScript
-- **Styling**: Tailwind CSS for responsive, modern UI
-- **Charts**: D3.js and Chart.js for interactive visualizations  
-- **State**: Zustand for lightweight state management
-- **Real-time**: Socket.IO client for live updates
-- **HTTP**: Axios with React Query for data fetching
-- **Testing**: Jest, React Testing Library, Playwright E2E
 
-### **DevOps & Infrastructure**
+This is **Phase 2** of the BI platform development - a complete Python backend replacement with:- **Styling**: Tailwind CSS for responsive, modern UI
+
+- FastAPI web framework- **Charts**: D3.js and Chart.js for interactive visualizations  
+
+- SQLAlchemy ORM with Alembic migrations  - **State**: Zustand for lightweight state management
+
+- Comprehensive API documentation- **Real-time**: Socket.IO client for live updates
+
+- Docker development environment- **HTTP**: Axios with React Query for data fetching
+
+- Production-ready configuration- **Testing**: Jest, React Testing Library, Playwright E2E
+
+
+
+Next phases will add advanced AI features and frontend integration.### **DevOps & Infrastructure**
 - **Containerization**: Docker and Docker Compose
 - **Orchestration**: Kubernetes for production scaling
 - **Cloud**: AWS/GCP/Azure with Terraform infrastructure

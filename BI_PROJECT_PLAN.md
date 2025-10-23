@@ -4,12 +4,39 @@
 
 Transform the existing Bee Agent Chat into a powerful Business Intelligence Assistant that allows users to ask questions about their business data in natural language and get insights with visualizations.
 
-### Current Foundation
-- Express + TypeScript backend
-- Socket.IO real-time communication
-- Bee Agent Framework with Groq LLaMA 3.1
-- Production-ready deployment setup
-- Security implementation (helmet, rate limiting, input validation)
+### **Why Python for BI? The Strategic Advantage**
+
+**Python is the ideal choice for Business Intelligence platforms** due to its unmatched ecosystem:
+
+#### **Data Science Supremacy**
+- **pandas & numpy**: Industry-standard data manipulation and analysis
+- **scikit-learn**: Comprehensive machine learning for predictive analytics
+- **matplotlib & seaborn**: Professional statistical visualizations
+- **plotly**: Interactive, publication-quality charts and dashboards
+
+#### **AI/ML Integration Excellence**
+- **LangChain**: Advanced LLM orchestration for natural language processing
+- **transformers**: State-of-the-art NLP models for query understanding
+- **spacy**: Production-ready NLP for text processing
+- **Groq Python SDK**: Native integration with fastest AI inference
+
+#### **Database Connectivity Champion**
+- **SQLAlchemy**: Powerful, flexible ORM supporting all major databases
+- **psycopg2, pymongo, pyodbc**: Robust, mature database drivers
+- **Superior data type handling**: Native support for complex data structures
+
+#### **Performance & Scalability**
+- **FastAPI**: Among the fastest Python frameworks, rivaling Node.js
+- **Async/await**: Native asynchronous programming for concurrent operations
+- **Celery**: Distributed task queue for background processing
+- **Redis integration**: Seamless caching and session management
+
+### Current Foundation (Transitioning to Python)
+- **Backend**: FastAPI + SQLAlchemy (replacing Express + TypeScript)
+- **Real-time**: FastAPI WebSockets (replacing Socket.IO)
+- **AI Framework**: LangChain + Groq Python SDK (enhanced capabilities)
+- **Data Processing**: pandas + numpy (native data science stack)
+- **Deployment**: Docker + Kubernetes (production-ready)
 
 ### Target Product
 A comprehensive Business Intelligence platform like Power BI where users can:
@@ -36,38 +63,45 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ## System Architecture
 
-### Backend Architecture (Microservices)
+### Backend Architecture (Python Microservices)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     API Gateway & Load Balancer                │
-│                    (Express + Rate Limiting)                   │
+│                    (FastAPI + Rate Limiting)                   │
 ├─────────────────────────────────────────────────────────────────┤
 │                    Authentication Service                       │
-│             (JWT + OAuth + 2FA + Device Trust)                 │
+│               (JWT + OAuth + 2FA + Device Trust)               │
+│                     (FastAPI + SQLAlchemy)                     │
 ├─────────────────────────────────────────────────────────────────┤
 │                        Core Services                           │
 │  ┌───────────────┬───────────────┬───────────────┬──────────────┐
 │  │   Data        │   Query       │  Analytics    │  Dashboard   │
 │  │  Connector    │   Engine      │   Service     │   Service    │
-│  │   Service     │   (AI+SQL)    │  (AI Insights)│ (Real-time)  │
+│  │  (pandas+     │ (LangChain+   │ (scikit+      │ (plotly+     │
+│  │  SQLAlchemy)  │   Groq+SQL)   │  pandas+AI)   │  FastAPI)    │
 │  └───────────────┴───────────────┴───────────────┴──────────────┘
 ├─────────────────────────────────────────────────────────────────┤
 │                       Data Processing Layer                     │
 │  ┌───────────────┬───────────────┬───────────────┬──────────────┐
 │  │   ETL/ELT     │   Stream      │   Cache       │   Export     │
-│  │   Pipeline    │  Processing   │   Redis       │   Service    │
+│  │  (pandas+     │  Processing   │   Redis       │   Service    │
+│  │   Celery)     │  (asyncio)    │ (redis-py)    │ (FastAPI)    │
 │  └───────────────┴───────────────┴───────────────┴──────────────┘
 ├─────────────────────────────────────────────────────────────────┤
 │                      Data Source Layer                         │
 │  ┌───────────────┬───────────────┬───────────────┬──────────────┐
 │  │  PostgreSQL   │    MySQL      │  SQL Server   │   Oracle     │
+│  │  (psycopg2)   │ (mysql-conn)  │   (pyodbc)    │ (cx_Oracle)  │
 │  │   MongoDB     │   Snowflake   │  BigQuery     │   Files      │
+│  │  (pymongo)    │   (snowflake) │ (google-cloud)│  (pandas)    │
 │  └───────────────┴───────────────┴───────────────┴──────────────┘
 ├─────────────────────────────────────────────────────────────────┤
 │                       Storage & Queue                          │
 │  ┌───────────────┬───────────────┬───────────────┬──────────────┐
 │  │   User DB     │   Metadata    │   File        │   Message    │
-│  │ (PostgreSQL)  │     Store     │   Storage     │    Queue     │
+│  │(PostgreSQL+   │     Store     │   Storage     │    Queue     │
+│  │ SQLAlchemy)   │  (PostgreSQL) │   (S3/Local)  │  (Celery+    │
+│  │               │               │               │   Redis)     │
 │  └───────────────┴───────────────┴───────────────┴──────────────┘
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -134,9 +168,9 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 #### Achievements
 - ✅ **Enterprise Authentication**: Multi-factor authentication with email OTP
 - ✅ **Security Features**: Device trust, rate limiting, account lockout protection
-- ✅ **Database Foundation**: PostgreSQL with Prisma ORM, type-safe operations
+- ✅ **Database Foundation**: PostgreSQL with enhanced schemas for BI operations
 - ✅ **Email System**: Professional templates for all authentication flows
-- ✅ **API Documentation**: Comprehensive Swagger documentation
+- ✅ **API Documentation**: Comprehensive documentation foundation
 - ✅ **Account Types**: Individual vs Business with different security levels
 
 #### Technical Implementation
@@ -148,81 +182,415 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ---
 
-## 🚀 PHASE 2: Data Connection Engine (Weeks 3-4)
+## 🚀 PHASE 2: Python Backend Infrastructure (Weeks 3-4)
 
-### Objective: Build the core data ingestion and connection layer
+### Objective: Build FastAPI-based backend with data science capabilities
 ### Duration: 2 weeks
 
-#### Week 3: Database Connectors & File Processing
+#### Week 3: FastAPI Foundation & Database Layer
 
 ##### Deliverables
 
-1. **Multi-Database Connection Manager**
-   ```typescript
-   // Database connection support
-   - PostgreSQL (native support)
-   - MySQL/MariaDB
-   - SQL Server
-   - SQLite
-   - MongoDB
-   - Oracle (basic support)
+1. **FastAPI Application Structure**
+   ```python
+   # Project structure
+   backend/
+   ├── app/
+   │   ├── main.py              # FastAPI application
+   │   ├── core/                # Core configuration
+   │   │   ├── config.py        # Settings management
+   │   │   ├── security.py      # Authentication & JWT
+   │   │   └── database.py      # Database connection
+   │   ├── api/                 # API routes
+   │   │   ├── auth.py         # Authentication endpoints
+   │   │   ├── data_sources.py # Data connection management
+   │   │   └── queries.py      # Query processing
+   │   ├── models/             # SQLAlchemy models
+   │   │   ├── user.py        # User models
+   │   │   ├── data_source.py # Data source models
+   │   │   └── query.py       # Query history models
+   │   └── services/          # Business logic
+   │       ├── auth_service.py    # Authentication logic
+   │       ├── database_manager.py # Database operations
+   │       └── query_processor.py # NL-to-SQL processing
+   ```
+
+2. **Multi-Database Connection Manager**
+   ```python
+   # Database connection support
+   - PostgreSQL (psycopg2 + SQLAlchemy)
+   - MySQL/MariaDB (mysql-connector-python)
+   - SQL Server (pyodbc)
+   - SQLite (built-in sqlite3)
+---
+
+## 🎨 PHASE 5: Frontend Development (Weeks 9-10)
+
+### Objective: Build responsive React frontend with modern UX
+### Duration: 2 weeks
+
+#### Week 9: Core UI Components & Authentication
+
+##### Deliverables
+
+1. **Modern React/Next.js Application**
+   ```jsx
+   // Component structure
+   src/
+   ├── components/
+   │   ├── auth/              # Authentication components
+   │   ├── dashboard/         # Dashboard builder
+   │   ├── visualizations/    # Chart components
+   │   ├── data-sources/      # Data connection UI
+   │   └── common/           # Shared components
+   ├── pages/
+   │   ├── login.tsx         # Authentication pages
+   │   ├── dashboard.tsx     # Main dashboard
+   │   ├── query.tsx         # Query interface
+   │   └── admin.tsx         # Admin panel
+   └── hooks/
+       ├── useAuth.ts        # Authentication hook
+       ├── useQuery.ts       # Query processing
+       └── useWebSocket.ts   # Real-time updates
+   ```
+
+2. **Authentication Integration**
+   - Login/Register forms with validation
+   - Two-factor authentication UI
+   - Device trust management
+   - Session handling and token refresh
+
+3. **Responsive Design System**
+   - Tailwind CSS for styling
+   - Mobile-first approach
+   - Dark/light theme support
+   - Accessibility compliance (WCAG 2.1)
+
+#### Week 10: Data Interface & Dashboard Builder
+
+##### Deliverables
+
+1. **Natural Language Query Interface**
+   ```jsx
+   const QueryInterface = () => {
+     const [query, setQuery] = useState('');
+     const [results, setResults] = useState(null);
+     
+     const handleQuery = async () => {
+       const response = await fetch('/api/query', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ query, dataSourceId })
+       });
+       
+       const data = await response.json();
+       setResults(data);
+     };
+     
+     return (
+       <div className="query-interface">
+         <input 
+           type="text" 
+           placeholder="Ask a question about your data..."
+           value={query}
+           onChange={(e) => setQuery(e.target.value)}
+         />
+         <button onClick={handleQuery}>Ask</button>
+         {results && <ResultsDisplay data={results} />}
+       </div>
+     );
+   };
+   ```
+
+2. **Interactive Dashboard Builder**
+   - Drag-and-drop chart placement
+   - Real-time chart customization
+   - Dashboard sharing and collaboration
+   - Export and printing capabilities
+
+3. **Data Source Management UI**
+   - Connection wizard with validation
+   - Schema browser and preview
+   - Connection testing interface
+   - File upload with progress tracking
+
+**Success Criteria:**
+- Fully responsive across all devices
+- Intuitive natural language query interface
+- Interactive dashboard builder
+- Seamless authentication flow
+- Real-time data updates
+
+---
+
+## 🚀 PHASE 6: Advanced Analytics & ML (Weeks 11-12)
+
+### Objective: Implement machine learning and predictive analytics
+### Duration: 2 weeks
+
+#### Week 11: Statistical Analysis & Pattern Detection
+
+##### Deliverables
+
+1. **Advanced Analytics Engine**
+   ```python
+   # Machine learning integration
+   from sklearn.cluster import KMeans
+   from sklearn.linear_model import LinearRegression
+   from sklearn.ensemble import IsolationForest
+   
+   class AdvancedAnalytics:
+       def detect_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
+           """Automatically detect patterns in data"""
+           results = {}
+           
+           # Clustering analysis
+           if len(df.select_dtypes(include=[np.number]).columns) >= 2:
+               numeric_data = df.select_dtypes(include=[np.number])
+               kmeans = KMeans(n_clusters=3)
+               clusters = kmeans.fit_predict(numeric_data)
+               results['clusters'] = clusters.tolist()
+           
+           # Trend analysis
+           if 'date' in df.columns:
+               results['trends'] = self.analyze_trends(df)
+           
+           # Anomaly detection
+           results['anomalies'] = self.detect_anomalies(df)
+           
+           return results
+       
+       def predictive_analysis(self, df: pd.DataFrame, target_column: str):
+           """Generate predictions based on historical data"""
+           # Time series forecasting
+           # Regression analysis
+           # Classification models
+           pass
+   ```
+
+2. **Automated Insights Generation**
+   ```python
+   class InsightGenerator:
+       def generate_insights(self, df: pd.DataFrame) -> List[Insight]:
+           insights = []
+           
+           # Statistical insights
+           insights.extend(self.statistical_insights(df))
+           
+           # Trend insights
+           insights.extend(self.trend_insights(df))
+           
+           # Correlation insights
+           insights.extend(self.correlation_insights(df))
+           
+           return insights
+   ```
+
+3. **Real-time Monitoring & Alerts**
+   - Threshold-based alerting
+   - Anomaly detection notifications
+   - Scheduled report generation
+   - Email/SMS alert integration
+
+#### Week 12: Predictive Modeling & Forecasting
+
+##### Deliverables
+
+1. **Time Series Forecasting**
+   ```python
+   # Using Prophet for time series forecasting
+   from prophet import Prophet
+   
+   class ForecastingEngine:
+       def generate_forecast(self, df: pd.DataFrame, periods: int = 30):
+           model = Prophet()
+           model.fit(df)
+           
+           future = model.make_future_dataframe(periods=periods)
+           forecast = model.predict(future)
+           
+           return forecast
+   ```
+
+2. **Machine Learning Models**
+   - Customer segmentation (K-Means clustering)
+   - Sales prediction (Linear/Polynomial regression)
+   - Churn prediction (Random Forest)
+   - Demand forecasting (ARIMA/Prophet)
+
+3. **Model Management & Deployment**
+   - Model versioning and tracking
+   - Performance monitoring
+   - A/B testing framework
+   - Model retraining pipelines
+
+**Success Criteria:**
+- Automated pattern detection in data
+- Accurate predictive models (>80% accuracy)
+- Real-time anomaly detection
+- Scheduled insights and reports
+- Model performance monitoring
+
+---
+
+## 🌐 PHASE 7: Enterprise Features & Deployment (Weeks 13-14)
+
+### Objective: Production deployment with enterprise-grade features
+### Duration: 2 weeks
+
+#### Week 13: Performance Optimization & Scaling
+
+##### Deliverables
+
+1. **Performance Optimization**
+   ```python
+   # Caching strategy with Redis
+   import redis
+   from functools import wraps
+   
+   redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+   
+   def cache_query_result(expiration=3600):
+       def decorator(func):
+           @wraps(func)
+           async def wrapper(*args, **kwargs):
+               cache_key = f"query:{hash(str(args) + str(kwargs))}"
+               cached_result = redis_client.get(cache_key)
+               
+               if cached_result:
+                   return json.loads(cached_result)
+               
+               result = await func(*args, **kwargs)
+               redis_client.setex(cache_key, expiration, json.dumps(result))
+               return result
+           return wrapper
+       return decorator
+   ```
+
+2. **Horizontal Scaling Architecture**
+   - Load balancer configuration
+   - Database connection pooling
+   - Microservices communication
+   - Auto-scaling policies
+
+3. **Security Hardening**
+   - SQL injection prevention
+   - Rate limiting per user/IP
+   - Data encryption at rest and transit
+   - Audit logging and compliance
+
+#### Week 14: Production Deployment & Monitoring
+
+##### Deliverables
+
+1. **Docker & Kubernetes Deployment**
+   ```yaml
+   # kubernetes deployment
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: bi-platform-backend
+   spec:
+     replicas: 3
+     selector:
+       matchLabels:
+         app: bi-platform
+     template:
+       metadata:
+         labels:
+           app: bi-platform
+       spec:
+         containers:
+         - name: backend
+           image: bi-platform:latest
+           ports:
+           - containerPort: 8000
+           env:
+           - name: DATABASE_URL
+             valueFrom:
+               secretKeyRef:
+                 name: db-secret
+                 key: url
+   ```
+
+2. **Monitoring & Observability**
+   - Application performance monitoring (APM)
+   - Log aggregation and analysis
+   - Health checks and uptime monitoring
+   - Error tracking and alerting
+
+3. **CI/CD Pipeline**
+   - Automated testing (unit, integration, e2e)
+   - Code quality checks (linting, security scans)
+   - Automated deployment to staging/production
+   - Database migration management
+
+**Success Criteria:**
+- 99.9% uptime with load balancing
+- Response times under 500ms for queries
+- Automated deployment pipeline
+- Comprehensive monitoring and alerting
+- Security compliance (SOC 2, GDPR ready)
+   - MongoDB (pymongo)
+   - Oracle (cx_Oracle)
    ```
 
 2. **File Processing Engine**
-   ```typescript
-   // File format support
-   - CSV (up to 100MB)
-   - Excel (.xlsx, .xls)
-   - JSON (structured data)
-   - Parquet (future: big data support)
-   - Real-time streaming (WebSocket/SSE)
+   ```python
+   # File format support with pandas
+   - CSV (pandas.read_csv - up to 100MB)
+   - Excel (pandas.read_excel - .xlsx, .xls)
+   - JSON (pandas.read_json - structured data)
+   - Parquet (pandas.read_parquet - big data)
+   - Real-time streaming (FastAPI WebSockets)
    ```
 
 3. **Data Connection APIs**
-   ```
+   ```python
+   # FastAPI endpoints
    POST /api/connections/database     # Add database connection
    GET  /api/connections              # List all connections
-   PUT  /api/connections/:id/test     # Test connection health
-   DELETE /api/connections/:id        # Remove connection
+   PUT  /api/connections/{id}/test    # Test connection health
+   DELETE /api/connections/{id}       # Remove connection
    POST /api/data/upload              # Upload files (CSV/Excel)
    GET  /api/data/sources             # List all data sources
    ```
 
 4. **Data Type Detection & Validation**
-   - Automatic schema inference
-   - Data type mapping (string, number, date, boolean)
-   - Data quality checks and validation
-   - Missing value detection and handling
+   - Automatic schema inference (pandas.DataFrame.dtypes)
+   - Data type mapping (pandas dtype conversion)
+   - Data quality checks (pandas.DataFrame.isnull())
+   - Missing value detection (pandas data profiling)
 
 #### Week 4: Data Query Interface & Caching
 
 ##### Deliverables
 
 1. **Unified Query Interface**
-   ```typescript
-   // Query abstraction layer
-   - SQL query builder
-   - NoSQL query translator
-   - File data querying (SQL-like syntax)
-   - Query optimization and caching
+   ```python
+   # Query abstraction layer with SQLAlchemy
+   - SQL query builder (SQLAlchemy Core)
+   - NoSQL query translator (pymongo queries)
+   - File data querying (pandas SQL-like operations)
+   - Query optimization (pandas query optimization)
    ```
 
 2. **Real-time Data Pipeline**
-   ```typescript
-   // Streaming and real-time features
-   - WebSocket connections for live data
-   - Data refresh scheduling
-   - Change detection and notifications
-   - Background data synchronization
+   ```python
+   # Streaming and real-time features
+   - WebSocket connections (FastAPI WebSockets)
+   - Data refresh scheduling (Celery Beat)
+   - Change detection (pandas diff operations)
+   - Background data sync (Celery workers)
    ```
 
 3. **Caching & Performance**
-   ```typescript
-   // Performance optimization
-   - Redis caching layer
-   - Query result caching
-   - Metadata caching
-   - Connection pooling
+   ```python
+   # Performance optimization
+   - Redis caching layer (redis-py)
+   - Query result caching (pandas + Redis)
+   - Metadata caching (SQLAlchemy + Redis)
+   - Connection pooling (SQLAlchemy Engine)
    ```
 
 ---
@@ -237,16 +605,17 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 ##### Deliverables
 
 1. **NL-to-SQL Conversion Engine**
-   ```typescript
-   // AI-powered query generation
-   - Natural language understanding
-   - SQL query generation from text
-   - Query optimization suggestions
-   - Context-aware query building
+   ```python
+   # AI-powered query generation with LangChain
+   - Natural language understanding (LangChain)
+   - SQL query generation (LangChain + Groq)
+   - Query optimization (SQLAlchemy + pandas)
+   - Context-aware building (LangChain Memory)
    ```
 
 2. **AI Query Interface**
-   ```
+   ```python
+   # FastAPI endpoints for AI queries
    POST /api/ai/query                 # Natural language query
    POST /api/ai/explain               # Explain data patterns
    GET  /api/ai/suggestions           # Get query suggestions
@@ -254,12 +623,12 @@ A comprehensive Business Intelligence platform like Power BI where users can:
    ```
 
 3. **Conversation Context**
-   ```typescript
-   // Conversational BI features
-   - Query history and context
-   - Follow-up question handling
-   - Data exploration suggestions
-   - User preference learning
+   ```python
+   # Conversational BI features with LangChain
+   - Query history and context (LangChain Memory)
+   - Follow-up question handling (LangChain Chains)
+   - Data exploration suggestions (AI recommendations)
+   - User preference learning (ML personalization)
    ```
 
 #### Week 6: Automated Insights & Recommendations
@@ -267,30 +636,30 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 ##### Deliverables
 
 1. **Pattern Detection Engine**
-   ```typescript
-   // AI-powered analytics
-   - Trend detection
-   - Anomaly identification
-   - Correlation analysis
-   - Predictive modeling (basic)
+   ```python
+   # AI-powered analytics with scikit-learn
+   - Trend detection (pandas + numpy)
+   - Anomaly identification (scikit-learn)
+   - Correlation analysis (pandas.corr())
+   - Predictive modeling (scikit-learn ML)
    ```
 
 2. **Insight Generation**
-   ```typescript
-   // Automated insights
-   - Key metrics identification
-   - Performance alerts
-   - Data quality reports
-   - Business KPI tracking
+   ```python
+   # Automated insights with pandas + AI
+   - Key metrics identification (pandas.describe())
+   - Performance alerts (threshold monitoring)
+   - Data quality reports (pandas profiling)
+   - Business KPI tracking (custom metrics)
    ```
 
 3. **Recommendation System**
-   ```typescript
-   // Smart recommendations
-   - Chart type suggestions
-   - Data exploration paths
-   - Optimization recommendations
-   - Best practice guidance
+   ```python
+   # Smart recommendations with ML
+   - Chart type suggestions (rule-based + ML)
+   - Data exploration paths (graph algorithms)
+   - Optimization recommendations (performance analysis)
+   - Best practice guidance (domain knowledge)
    ```
 
 ---
@@ -305,36 +674,37 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 ##### Deliverables
 
 1. **Chart Library Integration**
-   ```typescript
-   // Visualization libraries
-   - D3.js for custom charts
-   - Chart.js for standard charts
-   - Plotly.js for scientific charts
-   - React components wrapper
+   ```python
+   # Python visualization ecosystem
+   - plotly for interactive charts (plotly.py)
+   - matplotlib for statistical plots
+   - seaborn for advanced statistical visualization
+   - FastAPI endpoints for chart generation
    ```
 
 2. **Chart Types Support**
-   ```typescript
-   // Standard charts
+   ```python
+   # Comprehensive chart support
+   # Standard charts (plotly + matplotlib)
    - Bar, Line, Pie, Doughnut
    - Area, Scatter, Bubble
    - Histogram, Box plot
    - Heatmap, Treemap
    
-   // Advanced charts
-   - Gantt charts
-   - Sankey diagrams
-   - Geographic maps
-   - Time series
+   # Advanced charts (plotly + seaborn)
+   - Gantt charts (plotly.timeline)
+   - Sankey diagrams (plotly.sankey)
+   - Geographic maps (plotly.geo)
+   - Time series (plotly.timeseries)
    ```
 
 3. **Interactive Features**
-   ```typescript
-   // Chart interactivity
-   - Zoom and pan
-   - Drill-down functionality
-   - Cross-chart filtering
-   - Real-time data updates
+   ```python
+   # Chart interactivity with plotly
+   - Zoom and pan (plotly built-in)
+   - Drill-down functionality (callback functions)
+   - Cross-chart filtering (plotly dash)
+   - Real-time updates (FastAPI WebSockets)
    ```
 
 #### Week 8: Dashboard Builder
@@ -660,18 +1030,40 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ## 🛠️ **Technology Stack**
 
-### **Backend Technologies**
+### **Backend Technologies (Python-First)**
 | Technology | Purpose | Version |
 |------------|---------|---------|
-| **Node.js** | Runtime | 18+ |
-| **TypeScript** | Language | 5.0+ |
-| **Express.js** | Web Framework | 4.18+ |
-| **Prisma** | Database ORM | 6.0+ |
+| **Python** | Runtime Language | 3.11+ |
+| **FastAPI** | Web Framework | 0.104+ |
+| **SQLAlchemy** | Database ORM | 2.0+ |
+| **Alembic** | Database Migrations | 1.12+ |
 | **PostgreSQL** | Primary Database | 15+ |
-| **Redis** | Caching | 7.0+ |
-| **Socket.IO** | Real-time | 4.7+ |
-| **Groq LLaMA** | AI/ML | Latest |
-| **JWT** | Authentication | Latest |
+| **Redis** | Caching & Background Jobs | 7.0+ |
+| **Celery** | Async Task Queue | 5.3+ |
+| **WebSockets** | Real-time Communication | Built-in |
+| **Pydantic** | Data Validation | 2.4+ |
+
+### **Data Science & AI Stack**
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **pandas** | Data Manipulation | 2.1+ |
+| **numpy** | Numerical Computing | 1.24+ |
+| **LangChain** | LLM Orchestration | 0.0.330+ |
+| **Groq Python SDK** | AI/ML Processing | Latest |
+| **scikit-learn** | Machine Learning | 1.3+ |
+| **plotly** | Interactive Visualizations | 5.17+ |
+| **matplotlib** | Statistical Plotting | 3.7+ |
+| **seaborn** | Statistical Visualization | 0.12+ |
+
+### **Database Connectors**
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **psycopg2** | PostgreSQL Driver | 2.9+ |
+| **pymongo** | MongoDB Driver | 4.5+ |
+| **pyodbc** | SQL Server Driver | 4.0+ |
+| **mysql-connector** | MySQL Driver | 8.1+ |
+| **cx_Oracle** | Oracle Driver | 8.3+ |
+| **sqlite3** | SQLite (Built-in) | Native |
 
 ### **Frontend Technologies**
 | Technology | Purpose | Version |
@@ -680,8 +1072,8 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 | **Next.js** | Full-stack Framework | 14+ |
 | **TypeScript** | Language | 5.0+ |
 | **Tailwind CSS** | Styling | 3.3+ |
-| **D3.js** | Data Visualization | 7.8+ |
-| **Chart.js** | Charts | 4.4+ |
+| **Plotly.js** | Interactive Charts | 2.26+ |
+| **D3.js** | Custom Visualizations | 7.8+ |
 | **Zustand** | State Management | 4.4+ |
 | **React Query** | Data Fetching | 5.0+ |
 
@@ -694,6 +1086,85 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 | **Terraform** | Infrastructure | 1.5+ |
 | **GitHub Actions** | CI/CD | Latest |
 | **Prometheus** | Monitoring | Latest |
+
+---
+
+## **Python Backend Project Structure**
+
+```
+smart-bi-platform/
+├── backend/                        # Python FastAPI Backend
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                 # FastAPI application entry
+│   │   ├── config/
+│   │   │   ├── __init__.py
+│   │   │   ├── settings.py         # Environment configuration
+│   │   │   ├── database.py         # Database connection setup
+│   │   │   └── redis_config.py     # Redis configuration
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── user.py             # SQLAlchemy User model
+│   │   │   ├── data_source.py      # Data source models
+│   │   │   ├── dashboard.py        # Dashboard configuration
+│   │   │   └── query.py            # Query execution models
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py             # Authentication endpoints
+│   │   │   ├── data.py             # Data management endpoints
+│   │   │   ├── analytics.py        # AI analytics endpoints
+│   │   │   └── dashboards.py       # Dashboard endpoints
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_service.py     # Authentication logic
+│   │   │   ├── data_connector.py   # Database connections
+│   │   │   ├── ai_service.py       # LangChain + Groq integration
+│   │   │   ├── chart_service.py    # Plotly chart generation
+│   │   │   └── email_service.py    # Email notifications
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── security.py         # JWT & password hashing
+│   │   │   ├── dependencies.py     # FastAPI dependencies
+│   │   │   └── middleware.py       # Custom middleware
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+│   │   │   ├── data_processing.py  # Pandas data operations
+│   │   │   ├── sql_generator.py    # NL-to-SQL conversion
+│   │   │   └── validators.py       # Pydantic validators
+│   │   ├── tasks/
+│   │   │   ├── __init__.py
+│   │   │   ├── celery_app.py       # Celery configuration
+│   │   │   ├── data_tasks.py       # Background data processing
+│   │   │   └── email_tasks.py      # Async email sending
+│   │   └── tests/
+│   │       ├── __init__.py
+│   │       ├── test_auth.py        # Authentication tests
+│   │       ├── test_data.py        # Data processing tests
+│   │       └── test_analytics.py   # AI analytics tests
+│   ├── alembic/                    # Database migrations
+│   │   ├── versions/
+│   │   ├── env.py
+│   │   └── alembic.ini
+│   ├── requirements.txt            # Python dependencies
+│   ├── pyproject.toml             # Project configuration
+│   ├── Dockerfile                 # Docker configuration
+│   └── docker-compose.yml         # Local development setup
+├── frontend/                       # Next.js React Frontend
+│   ├── components/
+│   │   ├── auth/                   # Authentication components
+│   │   ├── charts/                 # Chart visualization components  
+│   │   ├── dashboard/              # Dashboard builder components
+│   │   └── common/                 # Reusable UI components
+│   ├── pages/
+│   │   ├── auth/                   # Authentication pages
+│   │   ├── dashboard/              # Dashboard management
+│   │   ├── data/                   # Data source management
+│   │   └── api/                    # Next.js API routes
+│   └── services/                   # Frontend API services
+├── docs/                          # Documentation
+├── kubernetes/                    # K8s deployment configs
+└── scripts/                       # Build and deployment scripts
+```
 
 ---
 
