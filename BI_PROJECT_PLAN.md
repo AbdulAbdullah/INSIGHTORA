@@ -158,73 +158,404 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ---
 
-## Development Phases - Complete BI Platform Roadmap
+## Development Phases - Backend-First Focused Approach
 
-## ✅ PHASE 1: Authentication & Security Foundation (COMPLETED - Weeks 1-2)
+## ⚠️ CURRENT BACKEND STATUS ANALYSIS
 
-### Status: **COMPLETE** ✅
-### Duration: 2 weeks
+### What We Actually Have (REALISTIC ASSESSMENT):
+- ✅ **FastAPI application structure** - Running successfully on port 8001
+- ✅ **Modular backend architecture** - Clean `app/modules/auth/` structure
+- ✅ **Database models** - Complete auth schema with all tables created
+- ✅ **Auth API endpoints** - `/register`, `/login`, `/verify-registration`, `/verify-login`
+- ✅ **JWT token system** - Working access/refresh token generation
+- ✅ **API documentation** - Full Swagger docs showing all auth endpoints
+- ✅ **Core infrastructure** - SQLAlchemy, Pydantic, error handling
 
-#### Achievements
-- ✅ **Enterprise Authentication**: Multi-factor authentication with email OTP
-- ✅ **Security Features**: Device trust, rate limiting, account lockout protection
-- ✅ **Database Foundation**: PostgreSQL with enhanced schemas for BI operations
-- ✅ **Email System**: Professional templates for all authentication flows
-- ✅ **API Documentation**: Comprehensive documentation foundation
-- ✅ **Account Types**: Individual vs Business with different security levels
+### Critical Missing Components (BLOCKING ISSUES):
+- ❌ **Email service integration** - OTP emails are logged, not sent (CRITICAL)
+- ❌ **Complete auth flow testing** - End-to-end verification incomplete
+- ❌ **Professional email templates** - Using basic logging placeholders
+- ❌ **Production security hardening** - Rate limiting, account lockout need testing
+- ❌ **Data source connections** - Not started yet
+- ❌ **Query processing engine** - Not started yet
+- ❌ **File upload processing** - Not started yet
+- ❌ **Dashboard/visualization backend** - Not started yet
 
-#### Technical Implementation
-- Enhanced two-factor authentication (registration + login OTP)
-- Device trust management (30-day device memory)
-- Professional email templates and security alerts
-- PostgreSQL migration with enhanced database schemas
-- Rate limiting and security audit logging
+### Problem: **Authentication architecture is solid, but email delivery is missing** - Users can register but cannot complete email verification.
 
 ---
 
-## 🚀 PHASE 2: Python Backend Infrastructure (Weeks 3-4)
+## � PHASE 1: Complete Authentication System (Week 1)
 
-### Objective: Build FastAPI-based backend with data science capabilities
-### Duration: 2 weeks
+### Objective: Fix broken authentication and complete MFA system
+### Duration: 3-4 days
+### Priority: **CRITICAL** - Nothing else works without this
 
-#### Week 3: FastAPI Foundation & Database Layer
+#### Day 1-2: OTP Verification System
 
-##### Deliverables
-
-1. **FastAPI Application Structure**
+**Critical Tasks:**
+1. **Email Service Integration**
    ```python
-   # Project structure
-   backend/
-   ├── app/
-   │   ├── main.py              # FastAPI application
-   │   ├── core/                # Core configuration
-   │   │   ├── config.py        # Settings management
-   │   │   ├── security.py      # Authentication & JWT
-   │   │   └── database.py      # Database connection
-   │   ├── api/                 # API routes
-   │   │   ├── auth.py         # Authentication endpoints
-   │   │   ├── data_sources.py # Data connection management
-   │   │   └── queries.py      # Query processing
-   │   ├── models/             # SQLAlchemy models
-   │   │   ├── user.py        # User models
-   │   │   ├── data_source.py # Data source models
-   │   │   └── query.py       # Query history models
-   │   └── services/          # Business logic
-   │       ├── auth_service.py    # Authentication logic
-   │       ├── database_manager.py # Database operations
-   │       └── query_processor.py # NL-to-SQL processing
+   # app/services/email_service.py
+   class EmailService:
+       def send_registration_otp(self, email: str, otp: str, name: str):
+           """Send OTP for email verification"""
+       
+       def send_login_otp(self, email: str, otp: str, name: str):
+           """Send OTP for login verification"""
    ```
 
-2. **Multi-Database Connection Manager**
+2. **OTP Generation & Management**
    ```python
-   # Database connection support
-   - PostgreSQL (psycopg2 + SQLAlchemy)
-   - MySQL/MariaDB (mysql-connector-python)
-   - SQL Server (pyodbc)
-   - SQLite (built-in sqlite3)
+   # app/services/otp_service.py
+   class OTPService:
+       def generate_otp(self, user_id: int, otp_type: str) -> str:
+           """Generate 6-digit OTP with 10-minute expiry"""
+       
+       def verify_otp(self, user_id: int, otp: str, otp_type: str) -> bool:
+           """Verify OTP and handle attempts/lockout"""
+   ```
+
+3. **Missing Authentication Endpoints**
+   ```python
+   # app/api/auth.py - ADD these endpoints
+   @router.post("/verify-registration")
+   @router.post("/verify-login") 
+   @router.post("/resend-otp")
+   ```
+
+**Deliverables:**
+- ✅ Working email OTP for registration verification
+- ✅ Working email OTP for login verification  
+- ✅ Complete authentication flow that actually works
+- ✅ Professional email templates
+- ✅ OTP rate limiting and security features
+
+#### Day 3-4: Data Source Foundation
+
+**Focus: Get basic data connectivity working**
+
+1. **Database Connectors (Essential)**
+   ```python
+   # app/services/data_connector.py
+   class DatabaseConnector:
+       def connect_postgresql(self, config: dict) -> bool:
+       def connect_mysql(self, config: dict) -> bool:
+       def test_connection(self, source_id: int) -> bool:
+       def get_schema(self, source_id: int) -> dict:
+   ```
+
+2. **File Upload Processing**
+   ```python
+   # app/services/file_processor.py  
+   class FileProcessor:
+       def process_csv(self, file_path: str) -> pd.DataFrame:
+       def process_excel(self, file_path: str) -> pd.DataFrame:
+       def infer_schema(self, df: pd.DataFrame) -> dict:
+   ```
+
+3. **Make Data Source Endpoints Functional**
+   - Currently they are API stubs
+   - Need actual database connections
+   - File upload should store and process files
+
+**Success Criteria:**
+- Users can register → verify email → login successfully
+- Users can connect to PostgreSQL/MySQL databases
+- Users can upload CSV/Excel files and see data preview
+- All authentication flows work end-to-end
+
 ---
 
-## 🎨 PHASE 5: Frontend Development (Weeks 9-10)
+## 🧠 PHASE 2: Query Processing Engine (Week 2)
+
+### Objective: Natural language to SQL conversion and query execution
+### Duration: 5-7 days
+
+#### Day 1-3: NL-to-SQL Engine
+
+**Core Implementation:**
+```python
+# app/services/query_processor.py
+class QueryProcessor:
+    def __init__(self):
+        self.llm_client = groq.Client(api_key=settings.GROQ_API_KEY)
+    
+    def process_natural_language(self, query: str, schema: dict) -> dict:
+        """Convert natural language to SQL using Groq/LLM"""
+        prompt = self.build_sql_prompt(query, schema)
+        sql_query = self.llm_client.generate_sql(prompt)
+        return {
+            "sql": sql_query,
+            "explanation": "Generated SQL explanation",
+            "confidence": 0.95
+        }
+    
+    def execute_query(self, sql: str, data_source_id: int) -> pd.DataFrame:
+        """Execute SQL query and return results"""
+        
+    def cache_results(self, query_hash: str, results: dict):
+        """Cache query results for performance"""
+```
+
+**Key Features:**
+- Groq integration for fast LLM inference
+- Schema-aware SQL generation
+- Query validation and sanitization
+- Result caching system
+- Error handling and fallbacks
+
+#### Day 4-5: Query History and Management
+
+**Implementation:**
+```python
+# app/api/queries.py - Make these endpoints functional
+@router.post("/queries") # Execute natural language query
+@router.get("/queries")  # Get query history  
+@router.post("/queries/execute") # Execute raw SQL
+@router.get("/queries/{id}/results") # Get cached results
+```
+
+**Features:**
+- Query history tracking
+- Favorite queries
+- Query sharing
+- Performance metrics
+
+#### Day 6-7: Data Preview and Analysis
+
+**Basic Analytics:**
+```python
+# app/services/data_analyzer.py
+class DataAnalyzer:
+    def basic_stats(self, df: pd.DataFrame) -> dict:
+        """Generate basic statistics for dataset"""
+    
+    def detect_data_types(self, df: pd.DataFrame) -> dict:
+        """Smart data type detection"""
+    
+    def suggest_visualizations(self, df: pd.DataFrame) -> list:
+        """Suggest appropriate chart types"""
+```
+
+**Success Criteria:**
+- Users can ask questions like "Show me sales by month"
+- System generates and executes SQL queries
+- Results are returned as structured data
+- Query history is tracked and accessible
+
+---
+
+## 📊 PHASE 3: Visualization and Dashboard Backend (Week 3)
+
+### Objective: Generate chart-ready data and dashboard management
+### Duration: 5-7 days
+
+#### Day 1-3: Chart Data Generation
+
+**Core Service:**
+```python
+# app/services/chart_service.py
+class ChartService:
+    def generate_chart_data(self, df: pd.DataFrame, chart_type: str) -> dict:
+        """Transform query results into chart-ready format"""
+        
+    def supported_chart_types(self) -> list:
+        """Return available chart types based on data"""
+        
+    def auto_chart_suggestion(self, df: pd.DataFrame) -> dict:
+        """AI-powered chart type suggestions"""
+```
+
+**Chart Types to Support:**
+- Bar charts, line charts, pie charts
+- Tables with sorting/filtering
+- Basic metrics (KPIs)
+- Time series charts
+
+#### Day 4-5: Dashboard Management
+
+**Implementation:**
+```python
+# app/api/dashboards.py - Make functional
+@router.post("/dashboards")     # Create dashboard
+@router.get("/dashboards")      # List dashboards
+@router.put("/dashboards/{id}") # Update dashboard
+@router.delete("/dashboards/{id}") # Delete dashboard
+```
+
+**Features:**
+- Dashboard CRUD operations
+- Widget management
+- Layout persistence
+- Dashboard sharing
+
+#### Day 6-7: Real-time Data Updates
+
+**WebSocket Integration:**
+```python
+# app/api/websocket.py
+class DashboardWebSocket:
+    async def connect(self, websocket: WebSocket, dashboard_id: int):
+        """WebSocket connection for real-time updates"""
+        
+    async def send_data_update(self, dashboard_id: int, widget_id: int):
+        """Push real-time data updates"""
+```
+
+**Success Criteria:**
+- Query results can be visualized as charts
+- Dashboards can be created and managed
+- Basic real-time data updates work
+- Dashboard layouts are persistent
+
+---
+
+## 🔐 PHASE 4: Security and Production Readiness (Week 4)
+
+### Objective: Production security and deployment preparation  
+### Duration: 3-5 days
+
+#### Day 1-2: Security Hardening
+
+**Enhanced Security:**
+```python
+# app/middleware/security.py
+class SecurityMiddleware:
+    def rate_limiting(self):
+        """Implement rate limiting per user/IP"""
+    
+    def audit_logging(self):
+        """Log all security events"""
+        
+    def input_validation(self):
+        """Enhanced input sanitization"""
+```
+
+**Features:**
+- Rate limiting per endpoint
+- Audit logging for security events
+- Input validation and sanitization
+- SQL injection prevention
+- XSS protection
+
+#### Day 3-4: Performance Optimization
+
+**Optimizations:**
+- Database query optimization
+- Result caching (Redis)
+- Connection pooling
+- Background task processing (Celery)
+- File upload optimization
+
+#### Day 5: Production Deployment
+
+**Deployment:**
+- Docker containerization
+- Environment configuration
+- Health checks and monitoring
+- CI/CD pipeline setup
+- Production database setup
+
+**Success Criteria:**
+- Backend is production-ready
+- All security measures implemented
+- Performance optimized for real usage
+- Monitoring and logging in place
+
+---
+
+## 🎨 PHASE 5: Frontend Development (Weeks 5-6)
+
+### Objective: Only start frontend after backend is 100% complete and tested
+### Duration: 2 weeks  
+
+**Note:** Frontend development only begins after backend is fully functional and tested. This ensures:
+- No wasted frontend work due to backend changes
+- Complete API specification is available
+- Authentication flows are verified working
+- Data flows are tested and optimized
+
+#### Week 1: Core Frontend
+- Authentication UI (registration, login, OTP verification)
+- Data source connection interface
+- Basic query interface
+
+#### Week 2: Dashboard Interface  
+- Dashboard builder
+- Chart rendering
+- Real-time updates
+
+---
+
+## 📋 IMMEDIATE ACTION PLAN
+
+### This Week's Priority (Most Critical):
+
+1. **Day 1: Fix Authentication (URGENT)**
+   - Implement `/verify-registration` endpoint
+   - Implement `/verify-login` endpoint  
+   - Add email service integration
+   - Test complete auth flow
+
+2. **Day 2-3: Data Sources**
+   - Make database connections work
+   - Implement file upload processing
+   - Test data source functionality
+
+3. **Day 4-5: Basic Queries**
+   - Implement NL-to-SQL conversion
+   - Make query endpoints functional
+   - Test query execution
+
+**Success Metric:** By end of week, a user should be able to:
+1. Register account → Verify email → Login successfully
+2. Connect to database OR upload CSV file
+3. Ask simple question and get SQL + results back
+
+### Why This Approach:
+
+✅ **Focus on working features** - No more API stubs  
+✅ **Backend-first** - Complete backend before frontend  
+✅ **Critical path** - Authentication blocks everything else  
+✅ **Incremental testing** - Each phase builds on previous  
+✅ **Real functionality** - No placeholder implementations
+
+This plan eliminates the "fake completion" problem where we have API endpoints that don't actually work.
+**This plan eliminates the "fake completion" problem where we have API endpoints that don't actually work.**
+
+---
+
+## 🚫 What We're NOT Doing (Avoiding Scope Creep)
+
+### Removed from Current Plan:
+- ❌ Advanced ML/AI features (Phase 6-7 postponed)
+- ❌ Mobile apps (focus on web first)  
+- ❌ Complex visualizations (start with basic charts)
+- ❌ Enterprise features (LDAP, SSO, advanced permissions)
+- ❌ Big data connectors (Snowflake, BigQuery - later)
+- ❌ Real-time streaming (basic refresh first)
+- ❌ Advanced analytics (focus on basic BI)
+- ❌ Microservices architecture (monolith first)
+
+### Focus Areas Only:
+✅ **Working authentication with OTP**  
+✅ **Basic database connections (PostgreSQL, MySQL)**  
+✅ **Simple file upload (CSV, Excel)**  
+✅ **Natural language to SQL**  
+✅ **Basic charts (bar, line, table)**  
+✅ **Simple dashboards**  
+✅ **Core security features**
+
+### Success Definition:
+A working BI platform where users can:
+1. **Register and login** (with email verification)
+2. **Connect their database** OR **upload a file**  
+3. **Ask questions** in natural language
+4. **Get answers** as charts and tables
+5. **Save results** in simple dashboards
+
+**Everything else is scope creep until this works perfectly.**
 
 ### Objective: Build responsive React frontend with modern UX
 ### Duration: 2 weeks
@@ -971,13 +1302,17 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ## 📋 **Implementation Checklist by Phase**
 
-### ✅ Phase 1: Authentication & Security (COMPLETED)
-- [x] Multi-factor authentication system
-- [x] Device trust management
-- [x] PostgreSQL database with Prisma
-- [x] Professional email templates
-- [x] Security features (rate limiting, lockout)
-- [x] API documentation foundation
+### ⚠️ Phase 1: Authentication & Security (IN PROGRESS - 70% Complete)
+- [x] ✅ **Modular backend architecture** - Clean auth module structure
+- [x] ✅ **Database models** - All auth tables created and working
+- [x] ✅ **JWT token system** - Access/refresh tokens generated
+- [x] ✅ **API endpoints** - Auth routes defined and documented
+- [x] ✅ **Core auth service** - Business logic implemented
+- [ ] ❌ **Email service integration** - OTP emails are mocked, not sent
+- [ ] ❌ **Complete auth flow** - End-to-end testing incomplete
+- [ ] ❌ **Professional email templates** - Basic logging only
+- [ ] ❌ **Rate limiting implementation** - Partially done
+- [ ] ❌ **Production-ready security** - Needs testing and hardening
 
 ### 🎯 Phase 2: Data Connection Engine (NEXT - Weeks 3-4)
 - [ ] Database connection manager (PostgreSQL, MySQL, SQL Server)
@@ -1590,22 +1925,20 @@ POST /api/reports/schedule     # Schedule automated reports
 
 ## 💡 **Future Enhancements**
 
-### **Phase 4: Advanced Features (Future)**
-- Machine learning predictions
-- Advanced data visualization
-- Multi-tenant architecture
-- Mobile application
-- Third-party integrations (Salesforce, HubSpot)
-- White-label solutions
-
-### **Phase 5: Enterprise Features (Future)**
-- Role-based access control
-- Advanced security features
-- Custom branding
-- API for third-party integrations
-- Advanced analytics and reporting
-- Enterprise support
-
 ---
 
-**Ready to start Phase 1? Let's begin with the backend infrastructure!** 🚀
+## 📋 SUMMARY
+
+**We have a comprehensive restructured plan that focuses on:**
+
+1. **Backend-First Approach** - Complete all backend functionality before starting frontend
+2. **Critical Path Focus** - Fix authentication blocking issues first
+3. **Real Implementation** - No more API stubs, everything must actually work
+4. **Incremental Testing** - Each phase builds and tests on the previous
+5. **Scope Control** - Removed unnecessary features, focused on core BI functionality
+
+**Current Status:** Backend structure exists but authentication is broken and most endpoints are non-functional stubs.
+
+**Next Steps:** Start with Day 1 - Fix OTP verification endpoints to make authentication work end-to-end.
+
+**Success Definition:** A working BI platform where users can register→verify→login→connect data→ask questions→get visualized answers.

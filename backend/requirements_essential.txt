@@ -18,7 +18,10 @@ asyncpg>=0.29.0
 # Authentication & Security
 python-jose>=3.3.0          # JWT token handling
 passlib>=1.7.4              # Password hashing
+bcrypt>=4.0.0               # Password hashing backend
+PyJWT>=2.8.0                # JWT implementation
 python-multipart>=0.0.6     # Form data parsing
+email-validator>=2.0.0      # Email validation
 
 # Data Processing (Required for full application)
 pandas>=2.0.0

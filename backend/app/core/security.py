@@ -7,11 +7,16 @@ from typing import Optional, Union, Any
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.config import settings
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# HTTP Bearer token scheme
+security = HTTPBearer()
 
 
 class TokenData(BaseModel):
@@ -192,3 +197,36 @@ def verify_api_key(api_key: str, hashed_api_key: str) -> bool:
     Verify API key against its hash
     """
     return verify_password(api_key, hashed_api_key)
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> dict:
+    """
+    Get current user from JWT token
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        # Extract token from credentials
+        token = credentials.credentials
+        
+        # Verify token
+        token_data = verify_token(token, token_type="access")
+        
+        if token_data is None:
+            raise credentials_exception
+            
+        # Return user data from token
+        return {
+            "id": token_data.user_id,
+            "email": token_data.email,
+            "scopes": token_data.scopes
+        }
+        
+    except JWTError:
+        raise credentials_exception

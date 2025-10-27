@@ -14,8 +14,11 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import async_engine, Base, get_db
 from app.core.middleware import LoggingMiddleware, SecurityMiddleware
-from app.api import auth, data_sources, queries, dashboards
-from app.utils.exceptions import BusinessLogicError, DataProcessingError
+from app.core.rate_limiter import limiter, rate_limit_exceeded_handler
+from app.modules.auth.routes import router as auth_router
+from app.modules.auth.exceptions import AuthenticationError
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -52,24 +55,26 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Smart BI Platform API",
     description="""
-    ## Smart Business Intelligence Platform 🚀
+    ## Smart BI Platform API - Auth Module 🚀
     
-    A powerful BI platform that transforms your data into actionable insights using:
+    **Phase 1: Authentication & User Management**
     
-    * **🤖 AI-Powered Queries**: Ask questions in natural language
-    * **📊 Interactive Visualizations**: Beautiful charts and dashboards  
-    * **🔗 Multi-Source Connectivity**: Connect to any database or file
-    * **⚡ Real-time Analytics**: Live data streaming and updates
-    * **🛡️ Enterprise Security**: JWT authentication and role-based access
+    Currently implemented:
+    * **🔐 User Registration**: Secure account creation with email verification
+    * **� Two-Factor Authentication**: OTP-based login security
+    * **�️ JWT Tokens**: Access and refresh token management
+    * **📱 Device Trust**: Remember trusted devices for seamless access
+    * **� Password Security**: Strong password requirements and hashing
     
-    ### Features
+    ### Authentication Features
     
-    * Natural language to SQL conversion with LangChain
-    * Interactive chart generation with plotly
-    * Multi-database support (PostgreSQL, MySQL, SQL Server, Oracle)
-    * File processing (CSV, Excel, JSON)
-    * Background task processing with Celery
-    * Real-time WebSocket updates
+    * Email-based OTP verification for registration and login
+    * JWT access tokens with refresh token rotation
+    * Device fingerprinting and trust management
+    * Account lockout protection after failed attempts
+    * Professional email templates for OTP delivery
+    
+    **Coming Next**: Data Sources, Analytics, and Visualizations modules
     """,
     version="1.0.0",
     contact={
@@ -88,6 +93,11 @@ app = FastAPI(
 
 # Security Middleware
 app.add_middleware(SecurityMiddleware)
+
+# Rate Limiting Middleware
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS Middleware
 app.add_middleware(
@@ -110,28 +120,15 @@ app.add_middleware(LoggingMiddleware)
 
 
 # Exception Handlers
-@app.exception_handler(BusinessLogicError)
-async def business_logic_error_handler(request: Request, exc: BusinessLogicError):
-    """Handle business logic errors"""
+@app.exception_handler(AuthenticationError)
+async def authentication_error_handler(request: Request, exc: AuthenticationError):
+    """Handle authentication errors"""
     return JSONResponse(
-        status_code=400,
+        status_code=401,
         content={
-            "error": "Business Logic Error",
+            "error": "Authentication Error",
             "message": str(exc),
-            "type": "business_error"
-        }
-    )
-
-
-@app.exception_handler(DataProcessingError)
-async def data_processing_error_handler(request: Request, exc: DataProcessingError):
-    """Handle data processing errors"""
-    return JSONResponse(
-        status_code=422,
-        content={
-            "error": "Data Processing Error",
-            "message": str(exc),
-            "type": "data_error"
+            "type": "auth_error"
         }
     )
 
@@ -165,27 +162,9 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 # Include API Routers
 app.include_router(
-    auth.router,
-    prefix="/api/v1/auth",
+    auth_router,
+    prefix="/api/v1",
     tags=["Authentication"]
-)
-
-app.include_router(
-    data_sources.router,
-    prefix="/api/v1/data-sources",
-    tags=["Data Sources"]
-)
-
-app.include_router(
-    queries.router,
-    prefix="/api/v1/queries",
-    tags=["Queries"]
-)
-
-app.include_router(
-    dashboards.router,
-    prefix="/api/v1/dashboards",
-    tags=["Dashboards"]
 )
 
 
@@ -196,16 +175,20 @@ async def read_root():
     Welcome endpoint with API information
     """
     return {
-        "message": "🚀 Smart BI Platform API",
+        "message": "🚀 Smart BI Platform API - Auth Module",
         "version": "1.0.0",
         "status": "running",
+        "current_phase": "Phase 1 - Authentication & User Management",
         "features": [
-            "AI-Powered Natural Language Queries",
-            "Interactive Data Visualizations", 
-            "Multi-Database Connectivity",
-            "Real-time Analytics",
-            "Enterprise Security"
+            "🔐 User Registration with Email Verification",
+            "🔑 Two-Factor Authentication (OTP)",
+            "🛡️ JWT Token Management",
+            "📱 Device Trust & Fingerprinting",
+            "🔒 Password Security & Account Protection"
         ],
+        "endpoints": {
+            "auth": "/api/v1/auth"
+        },
         "docs": "/docs",
         "redoc": "/redoc",
         "health": "/health"
@@ -243,22 +226,24 @@ async def api_info():
     API information and capabilities
     """
     return {
-        "name": "Smart BI Platform API",
-        "version": "1.0.0",
+        "name": "Smart BI Platform API - Auth Module",
+        "version": "1.0.0", 
         "environment": settings.ENVIRONMENT,
-        "features": {
-            "authentication": "JWT-based with refresh tokens",
-            "databases": ["PostgreSQL", "MySQL", "SQL Server", "Oracle", "MongoDB"],
-            "file_formats": ["CSV", "Excel", "JSON", "Parquet"],
-            "ai_models": ["LangChain", "Groq LLaMA", "OpenAI"],
-            "visualizations": ["plotly", "matplotlib", "seaborn"],
-            "background_tasks": "Celery with Redis"
+        "current_phase": "Phase 1 - Authentication & User Management",
+        "implemented_features": {
+            "authentication": "JWT-based with OTP verification",
+            "registration": "Email verification with strong password requirements",
+            "security": "Device trust, account lockout, rate limiting",
+            "tokens": "Access/refresh tokens with automatic rotation"
+        },
+        "coming_next": {
+            "data_sources": "PostgreSQL, MySQL, CSV, Excel connectivity",
+            "analytics": "Natural language to SQL with LangChain",
+            "visualizations": "Interactive charts with plotly",
+            "dashboards": "Drag-and-drop dashboard builder"
         },
         "endpoints": {
-            "auth": "/api/v1/auth",
-            "data_sources": "/api/v1/data-sources", 
-            "queries": "/api/v1/queries",
-            "dashboards": "/api/v1/dashboards"
+            "auth": "/api/v1/auth"
         }
     }
 

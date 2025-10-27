@@ -1,5 +1,5 @@
 """
-User models for authentication and user management
+Auth Module Models - All authentication-related database models
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey
@@ -51,12 +51,6 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     
-    # Relationships
-    data_sources = relationship("DataSource", back_populates="owner", cascade="all, delete-orphan")
-    dashboards = relationship("Dashboard", back_populates="owner", cascade="all, delete-orphan")
-    queries = relationship("QueryHistory", back_populates="user", cascade="all, delete-orphan")
-    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
-    
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, name={self.name})>"
     
@@ -81,11 +75,11 @@ class User(Base):
         }
 
 
-class UserSession(Base):
+class RefreshToken(Base):
     """
-    User session model for tracking active sessions and device trust
+    Refresh token model for JWT token management
     """
-    __tablename__ = "user_sessions"
+    __tablename__ = "refresh_tokens"
     
     # Primary key
     id = Column(Integer, primary_key=True, index=True)
@@ -93,9 +87,8 @@ class UserSession(Base):
     # Foreign key
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    # Session information
-    session_token = Column(String(255), unique=True, index=True, nullable=False)
-    refresh_token = Column(String(255), unique=True, index=True, nullable=False)
+    # Token information
+    token = Column(String(255), unique=True, index=True, nullable=False)
     
     # Device information
     device_fingerprint = Column(String(255), nullable=True)
@@ -104,34 +97,27 @@ class UserSession(Base):
     user_agent = Column(Text, nullable=True)
     ip_address = Column(String(45), nullable=True)  # IPv6 compatible
     
-    # Location information
-    country = Column(String(100), nullable=True)
-    city = Column(String(100), nullable=True)
-    
     # Trust and security
     is_trusted = Column(Boolean, default=False)
     trust_expires_at = Column(DateTime, nullable=True)
     
-    # Session status
+    # Status
     is_active = Column(Boolean, default=True)
     expires_at = Column(DateTime, nullable=False)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    last_activity = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Relationships
-    user = relationship("User", back_populates="sessions")
+    last_used = Column(DateTime(timezone=True), server_default=func.now())
     
     def __repr__(self):
-        return f"<UserSession(id={self.id}, user_id={self.user_id}, device_name={self.device_name})>"
+        return f"<RefreshToken(id={self.id}, user_id={self.user_id}, device_name={self.device_name})>"
 
 
-class UserOTP(Base):
+class OTPVerification(Base):
     """
     OTP (One-Time Password) model for two-factor authentication
     """
-    __tablename__ = "user_otps"
+    __tablename__ = "otp_verifications"
     
     # Primary key
     id = Column(Integer, primary_key=True, index=True)
@@ -160,14 +146,14 @@ class UserOTP(Base):
     context_data = Column(JSON, default=dict)  # Additional context like email, IP, etc.
     
     def __repr__(self):
-        return f"<UserOTP(id={self.id}, user_id={self.user_id}, type={self.otp_type})>"
+        return f"<OTPVerification(id={self.id}, user_id={self.user_id}, type={self.otp_type})>"
 
 
-class UserAPIKey(Base):
+class DeviceTrust(Base):
     """
-    API key model for programmatic access
+    Device trust model for managing trusted devices
     """
-    __tablename__ = "user_api_keys"
+    __tablename__ = "device_trusts"
     
     # Primary key
     id = Column(Integer, primary_key=True, index=True)
@@ -175,25 +161,26 @@ class UserAPIKey(Base):
     # Foreign key
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
-    # API key information
-    name = Column(String(255), nullable=False)
-    key_prefix = Column(String(20), nullable=False)  # First few chars for display
-    hashed_key = Column(String(255), nullable=False)
+    # Device identification
+    device_fingerprint = Column(String(255), unique=True, index=True, nullable=False)
+    device_name = Column(String(255), nullable=False)
+    device_type = Column(String(50), nullable=True)  # mobile, desktop, tablet
     
-    # Permissions and scopes
-    scopes = Column(JSON, default=list)  # List of allowed scopes
+    # Device information
+    user_agent = Column(Text, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    location = Column(String(255), nullable=True)
     
-    # Usage tracking
-    last_used = Column(DateTime, nullable=True)
-    usage_count = Column(Integer, default=0)
+    # Trust settings
+    trust_level = Column(String(50), default="basic")  # basic, high, administrative
+    trust_expires_at = Column(DateTime, nullable=False)
     
     # Status
     is_active = Column(Boolean, default=True)
-    expires_at = Column(DateTime, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    last_used = Column(DateTime(timezone=True), server_default=func.now())
     
     def __repr__(self):
-        return f"<UserAPIKey(id={self.id}, name={self.name}, prefix={self.key_prefix})>"
+        return f"<DeviceTrust(id={self.id}, user_id={self.user_id}, device_name={self.device_name})>"
