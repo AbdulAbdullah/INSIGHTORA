@@ -25,11 +25,11 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    # Security - Matching TypeScript app JWT configuration
-    SECRET_KEY: str = "your_super_secure_jwt_secret_here_at_least_32_characters_long_for_production_security"
-    REFRESH_SECRET_KEY: str = "your_super_secure_refresh_secret_here_different_from_jwt_secret_also_32_chars"
+    # Security - Load from environment variables
+    SECRET_KEY: str = "dev-secret-key-change-in-production"  # Default for development
+    REFRESH_SECRET_KEY: str = "dev-refresh-secret-change-in-production"  # Default for development
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # Matches TypeScript app 1h
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # CORS - Matching TypeScript app origins
@@ -65,19 +65,19 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     ALLOWED_FILE_EXTENSIONS: List[str] = [".csv", ".xlsx", ".xls", ".json", ".parquet"]
     
-    # AI and ML - Matching TypeScript app Groq configuration
-    GROQ_API_KEY: str = "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"
+    # AI and ML - Load from environment variables
+    GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.1-8b-instant"
     CURRENT_PROVIDER: str = "groq"
     OPENAI_API_KEY: str = ""
     LANGCHAIN_TRACING_V2: bool = False
     LANGCHAIN_API_KEY: str = ""
     
-    # Email (for notifications) - Matching TypeScript app email configuration
+    # Email (for notifications) - Load from environment variables
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-    SMTP_USER: str = "abdulabdullah1000@gmail.com"
-    SMTP_PASSWORD: str = "oauysvgkxlemoqht"
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
     SMTP_TLS: bool = True
     EMAIL_FROM: str = "noreply@notarize.com"
     EMAIL_FROM_NAME: str = "INSIGHTORA API Service"
