@@ -201,11 +201,14 @@ async def health_check():
     Health check endpoint for monitoring
     """
     try:
-        # Test database connection
-        from app.core.database import get_db
-        db = next(get_db())
-        db.execute("SELECT 1")
-        db_status = "healthy"
+        # Test database connection using async
+        from app.core.database import get_async_db
+        from sqlalchemy import text
+        
+        async for db in get_async_db():
+            await db.execute(text("SELECT 1"))
+            db_status = "healthy"
+            break
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
     

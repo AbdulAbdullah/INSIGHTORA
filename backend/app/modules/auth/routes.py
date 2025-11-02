@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 import logging
 
-from app.core.database import get_db
+from app.core.database import get_async_db
 from app.core.security import get_current_user
 from app.core.rate_limiter import limiter, auth_rate_limit, otp_rate_limit, auth_rate_limiter
 from .schemas import (
@@ -54,7 +54,7 @@ def extract_request_info(request: Request) -> Dict[str, Any]:
 async def register_user(
     user_data: UserCreate,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Register a new user account
@@ -100,7 +100,7 @@ async def register_user(
 async def verify_registration(
     otp_data: OTPVerify,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Verify registration OTP and activate account
@@ -146,7 +146,7 @@ async def verify_registration(
 async def login_user(
     login_data: UserLogin,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Initiate user login process
@@ -200,7 +200,7 @@ async def login_user(
 async def verify_login(
     otp_data: OTPVerify,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Verify login OTP and complete authentication
@@ -245,7 +245,7 @@ async def verify_login(
 async def refresh_token(
     refresh_data: RefreshTokenRequest,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Refresh access token using refresh token
@@ -276,7 +276,7 @@ async def refresh_token(
 async def logout_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Logout user and invalidate tokens
@@ -302,7 +302,7 @@ async def logout_user(
 async def reset_password(
     reset_data: PasswordReset,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Initiate password reset process
@@ -330,7 +330,7 @@ async def reset_password(
 async def reset_password_confirm(
     reset_data: PasswordResetConfirm,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Confirm password reset with OTP
@@ -358,7 +358,8 @@ async def reset_password_confirm(
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Get current user information
@@ -367,8 +368,23 @@ async def get_current_user_info(
     Returns current user profile data.
     """
     try:
-        return UserResponse(**current_user)
+        # Get full user data from database using user ID from token
+        from .models import User
+        from sqlalchemy import select
         
+        result = await db.execute(select(User).where(User.id == current_user["id"]))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        return UserResponse(**user.to_dict())
+        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Get user info error: {str(e)}")
         raise HTTPException(

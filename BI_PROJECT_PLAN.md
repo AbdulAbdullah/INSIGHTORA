@@ -1,8 +1,17 @@
-# Smart Business Intelligence Assistant - Project Plan
+# Smart Business Intelligence Assistant - Comprehensive Project Plan
 
 ## Project Overview
 
 Transform the existing Bee Agent Chat into a powerful Business Intelligence Assistant that allows users to ask questions about their business data in natural language and get insights with visualizations.
+
+### **Executive Summary**
+This document serves as the complete reference guide for building INSIGHTORA - an AI-powered Business Intelligence platform that democratizes data analytics through natural language processing. The platform will compete directly with Power BI, Tableau, and Looker by offering superior AI integration, ease of use, and cost-effectiveness.
+
+### **Project Scope & Objectives**
+- **Primary Goal**: Create a production-ready BI platform with natural language query capabilities
+- **Target Users**: Business analysts, data scientists, executives, and non-technical stakeholders
+- **Core Value Proposition**: Ask questions in plain English, get instant visualizations and insights
+- **Success Criteria**: 100+ active users, 95%+ query success rate, <2s response times
 
 ### **Why Python for BI? The Strategic Advantage**
 
@@ -61,9 +70,200 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ---
 
-## System Architecture
+## 🏗️ **Technical Architecture & Design**
 
-### Backend Architecture (Python Microservices)
+### **Free-Tier First Architecture**
+
+The INSIGHTORA platform is designed to run entirely on **FREE services** during development and early stages, with clear upgrade paths as the platform grows.
+
+### **Free Services Stack**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     FREE TIER DEPLOYMENT                       │
+├─────────────────────────────────────────────────────────────────┤
+│  Frontend (Later)     │  Backend (Current Focus)               │
+│  ┌─────────────────┐  │  ┌─────────────────────────────────────┐ │
+│  │ Vercel (Free)   │  │  │ Railway/Render (Free)               │ │
+│  │ - 100GB bandwidth│  │  │ - 512MB RAM, 0.1 CPU              │ │
+│  │ - Custom domain │  │  │ - PostgreSQL included               │ │
+│  │ - Auto SSL      │  │  │ - Auto deployments                 │ │
+│  └─────────────────┘  │  └─────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                    Database & Storage (FREE)                   │
+│  ┌─────────────────┬─────────────────┬─────────────────────────┐ │
+│  │ PostgreSQL      │ Redis Cache     │ File Storage            │ │
+│  │ Railway: 1GB    │ Upstash: 10K    │ Cloudinary: 25GB       │ │
+│  │ Supabase: 500MB │ requests/day    │ GitHub LFS: 1GB        │ │
+│  │ Neon: 3GB       │ Redis Labs Free │ Vercel Blob: 1GB       │ │
+│  └─────────────────┴─────────────────┴─────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                      AI & Analytics (FREE)                     │
+│  ┌─────────────────┬─────────────────┬─────────────────────────┐ │
+│  │ Groq API        │ Hugging Face    │ OpenAI (Limited)        │ │
+│  │ FREE: 14K RPM   │ FREE: Inference │ $5 credit monthly      │ │
+│  │ LLaMA 3.1 8B    │ 30K chars/month │ GPT-3.5 Turbo          │ │
+│  └─────────────────┴─────────────────┴─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 🏛️ **MODULAR ARCHITECTURE & DESIGN PRINCIPLES**
+
+### **SOLID Principles Implementation**
+
+Our architecture strictly follows SOLID principles for maintainable, scalable code:
+
+#### **S - Single Responsibility Principle**
+```python
+# ❌ BAD: One class doing everything
+class UserManager:
+    def create_user(self): pass
+    def send_email(self): pass
+    def validate_password(self): pass
+    def generate_jwt(self): pass
+
+# ✅ GOOD: Each class has one responsibility
+class UserService:           # User business logic only
+    def create_user(self): pass
+    
+class EmailService:          # Email operations only
+    def send_otp_email(self): pass
+    
+class PasswordValidator:     # Password validation only
+    def validate_strength(self): pass
+    
+class JWTManager:           # Token operations only
+    def generate_token(self): pass
+```
+
+#### **O - Open/Closed Principle**
+```python
+# ✅ Extensible data connectors without modifying existing code
+class DataConnector(ABC):
+    @abstractmethod
+    def connect(self) -> bool: pass
+    @abstractmethod
+    def query(self, sql: str) -> DataFrame: pass
+
+class PostgreSQLConnector(DataConnector):
+    def connect(self) -> bool: pass
+    def query(self, sql: str) -> DataFrame: pass
+
+class MySQLConnector(DataConnector):
+    def connect(self) -> bool: pass
+    def query(self, sql: str) -> DataFrame: pass
+
+# Adding new connectors doesn't modify existing ones
+class MongoDBConnector(DataConnector):
+    def connect(self) -> bool: pass
+    def query(self, sql: str) -> DataFrame: pass
+```
+
+#### **L - Liskov Substitution Principle**
+```python
+# ✅ Any chart generator can be substituted
+class ChartGenerator(ABC):
+    @abstractmethod
+    def generate(self, data: DataFrame) -> dict: pass
+
+class BarChartGenerator(ChartGenerator):
+    def generate(self, data: DataFrame) -> dict:
+        # Returns consistent chart format
+        return {"type": "bar", "data": [...], "config": {...}}
+
+class LineChartGenerator(ChartGenerator):
+    def generate(self, data: DataFrame) -> dict:
+        # Same interface, different implementation
+        return {"type": "line", "data": [...], "config": {...}}
+```
+
+#### **I - Interface Segregation Principle**
+```python
+# ✅ Small, focused interfaces instead of large ones
+class Readable(Protocol):
+    def read(self) -> DataFrame: pass
+
+class Writable(Protocol):
+    def write(self, data: DataFrame) -> bool: pass
+
+class Queryable(Protocol):
+    def query(self, sql: str) -> DataFrame: pass
+
+# Classes implement only what they need
+class CSVProcessor(Readable):
+    def read(self) -> DataFrame: pass
+
+class DatabaseConnector(Readable, Writable, Queryable):
+    def read(self) -> DataFrame: pass
+    def write(self, data: DataFrame) -> bool: pass
+    def query(self, sql: str) -> DataFrame: pass
+```
+
+#### **D - Dependency Inversion Principle**
+```python
+# ✅ Depend on abstractions, not concretions
+class AnalyticsService:
+    def __init__(
+        self,
+        data_connector: DataConnector,  # Abstract interface
+        ai_service: AIService,          # Abstract interface
+        cache_service: CacheService     # Abstract interface
+    ):
+        self.data_connector = data_connector
+        self.ai_service = ai_service
+        self.cache_service = cache_service
+    
+    def process_query(self, query: str) -> dict:
+        # Uses abstractions, not concrete implementations
+        sql = self.ai_service.generate_sql(query)
+        data = self.data_connector.query(sql)
+        return self.cache_service.cache_result(data)
+```
+
+### **DRY Principle Implementation**
+
+#### **Shared Utilities & Common Functions**
+```python
+# ✅ DRY: Reusable validation utilities
+class ValidationUtils:
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        return re.match(r'^[^@]+@[^@]+\.[^@]+$', email) is not None
+    
+    @staticmethod
+    def validate_password_strength(password: str) -> dict:
+        return {
+            "is_valid": len(password) >= 8,
+            "has_uppercase": any(c.isupper() for c in password),
+            "has_lowercase": any(c.islower() for c in password),
+            "has_digit": any(c.isdigit() for c in password)
+        }
+
+# ✅ DRY: Reusable response formatters
+class ResponseFormatter:
+    @staticmethod
+    def success_response(data: any, message: str = "Success") -> dict:
+        return {"success": True, "message": message, "data": data}
+    
+    @staticmethod
+    def error_response(error: str, code: int = 400) -> dict:
+        return {"success": False, "error": error, "code": code}
+```
+
+#### **Configuration Management (DRY)**
+```python
+# ✅ DRY: Centralized configuration
+class DatabaseConfig:
+    @staticmethod
+    def get_connection_string(db_type: str, config: dict) -> str:
+        templates = {
+            "postgresql": "postgresql://{user}:{password}@{host}:{port}/{database}",
+            "mysql": "mysql://{user}:{password}@{host}:{port}/{database}",
+            "sqlite": "sqlite:///{database}"
+        }
+        return templates[db_type].format(**config)
+```
+
+### **Modular Backend Architecture (Python FastAPI)**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     API Gateway & Load Balancer                │
@@ -158,7 +358,47 @@ A comprehensive Business Intelligence platform like Power BI where users can:
 
 ---
 
-## Development Phases - Backend-First Focused Approach
+## 🚀 **REVISED DEVELOPMENT STRATEGY - FREE TIER & BACKEND FIRST**
+
+### **Why Backend-First + Free Tier Strategy?**
+
+**Financial Benefits:**
+- Zero hosting costs during development (Railway/Render free tier)
+- No database costs (PostgreSQL included in hosting)
+- Free AI inference (Groq 14K requests/day)
+- No frontend hosting needed initially (API-only)
+
+**Technical Benefits:**
+- API-first design = easier to add frontend later
+- Can test with Postman/curl during development
+- Multiple frontend options (React, Vue, mobile app)
+- Better for attracting developer users first
+
+**Business Benefits:**
+- Faster time to market (no frontend complexity)
+- Can validate core value proposition with API users
+- Lower barrier to experimentation
+- Clear upgrade path when revenue starts
+
+### **Phase Strategy: API-First, Frontend Later**
+
+```mermaid
+graph TD
+    A[Phase 1: Core API] --> B[Phase 2: Data Engine]
+    B --> C[Phase 3: AI Analytics]
+    C --> D[Phase 4: API Polish]
+    D --> E[Phase 5: Frontend Planning]
+    E --> F[Phase 6: Frontend Build]
+    F --> G[Phase 7: Full Platform]
+    
+    style A fill:#e1f5fe
+    style B fill:#e8f5e8
+    style C fill:#fff3e0
+    style D fill:#f3e5f5
+    style E fill:#ffebee
+    style F fill:#e0f2f1
+    style G fill:#fff8e1
+```
 
 ## ⚠️ CURRENT BACKEND STATUS ANALYSIS
 
@@ -488,30 +728,62 @@ class SecurityMiddleware:
 
 ---
 
-## 📋 IMMEDIATE ACTION PLAN
+## 📋 IMMEDIATE ACTION PLAN - FREE TIER FOCUSED
 
-### This Week's Priority (Most Critical):
+### **Week 1: Get Backend Running on Free Hosting (CRITICAL)**
 
-1. **Day 1: Fix Authentication (URGENT)**
-   - Implement `/verify-registration` endpoint
-   - Implement `/verify-login` endpoint  
-   - Add email service integration
-   - Test complete auth flow
+**Day 1: Deploy to Railway (Free)**
+```bash
+# Deploy current backend to Railway free tier
+1. Connect GitHub repo to Railway
+2. Set environment variables (DATABASE_URL auto-provided)
+3. Deploy and test /health endpoint
+4. Verify API docs at https://your-app.railway.app/docs
+```
 
-2. **Day 2-3: Data Sources**
-   - Make database connections work
-   - Implement file upload processing
-   - Test data source functionality
+**Day 2-3: Fix Authentication with Free Email**
+```bash
+# Use free email service for OTP
+1. Set up Gmail SMTP (free, 500 emails/day)
+2. Implement /verify-registration endpoint
+3. Implement /verify-login endpoint
+4. Test complete auth flow on Railway
+```
 
-3. **Day 4-5: Basic Queries**
-   - Implement NL-to-SQL conversion
-   - Make query endpoints functional
-   - Test query execution
+**Day 4-5: Basic Data Processing**
+```bash
+# File upload only (no database costs)
+1. CSV upload and processing with pandas
+2. Basic data preview endpoint
+3. Simple query execution on uploaded data
+4. Test with Postman/curl
+```
 
-**Success Metric:** By end of week, a user should be able to:
-1. Register account → Verify email → Login successfully
-2. Connect to database OR upload CSV file
-3. Ask simple question and get SQL + results back
+### **Week 2: API-First User Testing**
+
+**Day 1-2: API Documentation**
+```bash
+# Make API developer-friendly
+1. Improve Swagger docs with examples
+2. Add Postman collection
+3. Create API usage guide
+4. Add rate limiting info
+```
+
+**Day 3-5: Find First API Users**
+```bash
+# Get feedback before building frontend
+1. Post on Reddit r/webdev, r/python
+2. Share on Twitter/LinkedIn
+3. Get 5 developers to test the API
+4. Collect feedback on missing features
+```
+
+**Success Metric:** 
+- Backend running on Railway (free)
+- 5 developers successfully using the API
+- Authentication flow working end-to-end
+- CSV upload and basic queries functional
 
 ### Why This Approach:
 
@@ -526,36 +798,53 @@ This plan eliminates the "fake completion" problem where we have API endpoints t
 
 ---
 
-## 🚫 What We're NOT Doing (Avoiding Scope Creep)
+## 🚫 What We're NOT Doing (Avoiding Scope Creep & Costs)
 
 ### Removed from Current Plan:
-- ❌ Advanced ML/AI features (Phase 6-7 postponed)
-- ❌ Mobile apps (focus on web first)  
-- ❌ Complex visualizations (start with basic charts)
-- ❌ Enterprise features (LDAP, SSO, advanced permissions)
-- ❌ Big data connectors (Snowflake, BigQuery - later)
-- ❌ Real-time streaming (basic refresh first)
-- ❌ Advanced analytics (focus on basic BI)
-- ❌ Microservices architecture (monolith first)
+- ❌ **Frontend development** (API-first, frontend later when profitable)
+- ❌ **Paid services** (AWS, GCP, Azure - use free tiers only)
+- ❌ **Database hosting costs** (use Railway/Render included PostgreSQL)
+- ❌ **Advanced ML/AI features** (stick to free Groq API limits)
+- ❌ **Mobile apps** (API can support mobile later)  
+- ❌ **Complex visualizations** (return JSON, let frontend handle charts)
+- ❌ **Enterprise features** (LDAP, SSO - focus on individual developers)
+- ❌ **Big data connectors** (Snowflake, BigQuery cost money)
+- ❌ **Real-time streaming** (WebSockets cost server resources)
+- ❌ **Microservices architecture** (monolith is cheaper to host)
+- ❌ **CDN costs** (use free tiers: Cloudflare, Vercel)
+- ❌ **Monitoring services** (use free: Railway logs, Sentry free tier)
 
-### Focus Areas Only:
-✅ **Working authentication with OTP**  
-✅ **Basic database connections (PostgreSQL, MySQL)**  
-✅ **Simple file upload (CSV, Excel)**  
-✅ **Natural language to SQL**  
-✅ **Basic charts (bar, line, table)**  
-✅ **Simple dashboards**  
-✅ **Core security features**
+### Focus Areas Only (FREE TIER):
+✅ **Working authentication with OTP** (Gmail SMTP - free 500/day)
+✅ **CSV/Excel file upload** (no database hosting costs)  
+✅ **Natural language to SQL** (Groq API - free 14K requests/day)
+✅ **JSON API responses** (let frontend handle visualization)
+✅ **Core security features** (JWT, rate limiting)
+✅ **API documentation** (Swagger - built into FastAPI)
+✅ **Free hosting** (Railway 512MB RAM, PostgreSQL included)
 
-### Success Definition:
-A working BI platform where users can:
+### Revenue Strategy (API-First):
+💰 **Freemium API Model**
+- Free: 100 queries/day, 10MB file uploads
+- Pro ($9/month): 10K queries/day, 100MB files, priority support
+- Business ($29/month): Unlimited queries, database connections, webhooks
+
+### Success Definition (API-First):
+A working BI API where developers can:
 1. **Register and login** (with email verification)
-2. **Connect their database** OR **upload a file**  
-3. **Ask questions** in natural language
-4. **Get answers** as charts and tables
-5. **Save results** in simple dashboards
+2. **Upload CSV/Excel files** (no database costs initially)
+3. **Ask questions** in natural language via API
+4. **Get structured JSON responses** (charts data, not rendered charts)
+5. **Access query history** and **manage data sources**
 
-**Everything else is scope creep until this works perfectly.**
+### Frontend Success Definition (Later Phase):
+A working BI platform where end-users can:
+1. **Use the API through a beautiful interface**
+2. **Drag-and-drop dashboard builder**
+3. **Real-time chart rendering**
+4. **Share dashboards** and **collaborate**
+
+**API must be profitable before building frontend.**
 
 ### Objective: Build responsive React frontend with modern UX
 ### Duration: 2 weeks
@@ -1071,10 +1360,477 @@ A working BI platform where users can:
 
 ---
 
-## 🎨 PHASE 5: Frontend Dashboard Interface (Weeks 9-10)
+## 🎨 PHASE 5: Frontend Planning & Architecture (Week 9)
 
-### Objective: Build the user-facing dashboard and visualization interface
-### Duration: 2 weeks
+### Objective: Plan frontend architecture and choose free deployment strategy
+### Duration: 1 week
+
+**Note: Frontend development is POSTPONED until backend is 100% complete and generating revenue**
+
+#### Week 9: Frontend Strategy & Planning
+
+##### Deliverables
+
+1. **Modular Frontend Architecture (SOLID/DRY Compliant)**
+   ```typescript
+   // 🏗️ RECOMMENDED: Next.js + TypeScript + Modular Architecture
+   
+   Technology Stack:
+   - Next.js 14+ (App Router for better organization)
+   - TypeScript (Full type safety)
+   - Tailwind CSS (Utility-first, DRY styling)
+   - Zustand (Lightweight state management)
+   - React Query (Server state management)
+   - React Hook Form (Form management)
+   - Zod (Runtime type validation)
+   - Storybook (Component documentation)
+   
+   Deployment: Vercel (FREE: 100GB bandwidth, custom domain)
+   ```
+
+   **Modular Frontend Structure (SOLID Principles)**
+   ```typescript
+   frontend/
+   ├── src/
+   │   ├── app/                    # 📱 Next.js App Router (Route-based modules)
+   │   │   ├── (auth)/            # Authentication routes group
+   │   │   │   ├── login/
+   │   │   │   ├── register/
+   │   │   │   └── layout.tsx     # Auth-specific layout
+   │   │   ├── (dashboard)/       # Dashboard routes group
+   │   │   │   ├── analytics/
+   │   │   │   ├── data-sources/
+   │   │   │   ├── charts/
+   │   │   │   └── layout.tsx     # Dashboard layout
+   │   │   ├── api/               # API routes (if needed)
+   │   │   ├── globals.css
+   │   │   └── layout.tsx         # Root layout
+   │   │
+   │   ├── components/            # 🧩 Reusable UI Components (DRY)
+   │   │   ├── ui/               # Base UI components
+   │   │   │   ├── Button.tsx    # Single responsibility
+   │   │   │   ├── Input.tsx
+   │   │   │   ├── Modal.tsx
+   │   │   │   ├── Card.tsx
+   │   │   │   └── index.ts      # Barrel exports
+   │   │   ├── forms/            # Form components
+   │   │   │   ├── AuthForm.tsx
+   │   │   │   ├── DataSourceForm.tsx
+   │   │   │   └── QueryForm.tsx
+   │   │   ├── charts/           # Chart components (Strategy Pattern)
+   │   │   │   ├── BaseChart.tsx # Abstract chart interface
+   │   │   │   ├── BarChart.tsx  # Specific implementations
+   │   │   │   ├── LineChart.tsx
+   │   │   │   ├── PieChart.tsx
+   │   │   │   └── ChartFactory.tsx # Chart factory
+   │   │   └── layout/           # Layout components
+   │   │       ├── Header.tsx
+   │   │       ├── Sidebar.tsx
+   │   │       └── Footer.tsx
+   │   │
+   │   ├── modules/              # 📦 Feature Modules (Single Responsibility)
+   │   │   ├── auth/            # Authentication module
+   │   │   │   ├── components/  # Auth-specific components
+   │   │   │   │   ├── LoginForm.tsx
+   │   │   │   │   ├── RegisterForm.tsx
+   │   │   │   │   └── OTPVerification.tsx
+   │   │   │   ├── hooks/       # Auth-specific hooks
+   │   │   │   │   ├── useAuth.ts
+   │   │   │   │   ├── useLogin.ts
+   │   │   │   │   └── useRegister.ts
+   │   │   │   ├── services/    # Auth API services
+   │   │   │   │   ├── authApi.ts
+   │   │   │   │   └── tokenManager.ts
+   │   │   │   ├── stores/      # Auth state management
+   │   │   │   │   └── authStore.ts
+   │   │   │   ├── types/       # Auth-specific types
+   │   │   │   │   └── auth.types.ts
+   │   │   │   └── utils/       # Auth utilities
+   │   │   │       ├── validation.ts
+   │   │   │       └── storage.ts
+   │   │   │
+   │   │   ├── data-sources/    # Data source management module
+   │   │   │   ├── components/
+   │   │   │   │   ├── DataSourceList.tsx
+   │   │   │   │   ├── ConnectionWizard.tsx
+   │   │   │   │   └── FileUpload.tsx
+   │   │   │   ├── hooks/
+   │   │   │   │   ├── useDataSources.ts
+   │   │   │   │   └── useFileUpload.ts
+   │   │   │   ├── services/
+   │   │   │   │   └── dataSourceApi.ts
+   │   │   │   ├── stores/
+   │   │   │   │   └── dataSourceStore.ts
+   │   │   │   └── types/
+   │   │   │       └── dataSource.types.ts
+   │   │   │
+   │   │   ├── analytics/       # Analytics & queries module
+   │   │   │   ├── components/
+   │   │   │   │   ├── QueryInterface.tsx
+   │   │   │   │   ├── QueryHistory.tsx
+   │   │   │   │   └── ResultsDisplay.tsx
+   │   │   │   ├── hooks/
+   │   │   │   │   ├── useQuery.ts
+   │   │   │   │   └── useQueryHistory.ts
+   │   │   │   ├── services/
+   │   │   │   │   └── analyticsApi.ts
+   │   │   │   └── stores/
+   │   │   │       └── queryStore.ts
+   │   │   │
+   │   │   ├── dashboards/      # Dashboard builder module
+   │   │   │   ├── components/
+   │   │   │   │   ├── DashboardGrid.tsx
+   │   │   │   │   ├── WidgetEditor.tsx
+   │   │   │   │   └── DashboardList.tsx
+   │   │   │   ├── hooks/
+   │   │   │   │   ├── useDashboard.ts
+   │   │   │   │   └── useWidgets.ts
+   │   │   │   ├── services/
+   │   │   │   │   └── dashboardApi.ts
+   │   │   │   └── stores/
+   │   │   │       └── dashboardStore.ts
+   │   │   │
+   │   │   └── visualizations/  # Chart & visualization module
+   │   │       ├── components/
+   │   │       │   ├── ChartRenderer.tsx
+   │   │       │   ├── ChartControls.tsx
+   │   │       │   └── ChartExport.tsx
+   │   │       ├── hooks/
+   │   │       │   ├── useChart.ts
+   │   │       │   └── useChartData.ts
+   │   │       ├── services/
+   │   │       │   └── chartApi.ts
+   │   │       └── utils/
+   │   │           ├── chartHelpers.ts
+   │   │           └── dataTransformers.ts
+   │   │
+   │   ├── shared/              # 🔄 Shared Utilities (DRY)
+   │   │   ├── hooks/          # Reusable hooks
+   │   │   │   ├── useApi.ts   # Generic API hook
+   │   │   │   ├── useLocalStorage.ts
+   │   │   │   ├── useDebounce.ts
+   │   │   │   └── useWebSocket.ts
+   │   │   ├── services/       # Shared services
+   │   │   │   ├── apiClient.ts # HTTP client (Dependency Inversion)
+   │   │   │   ├── errorHandler.ts
+   │   │   │   └── logger.ts
+   │   │   ├── stores/         # Global state
+   │   │   │   ├── appStore.ts
+   │   │   │   └── themeStore.ts
+   │   │   ├── types/          # Shared TypeScript types
+   │   │   │   ├── api.types.ts
+   │   │   │   ├── common.types.ts
+   │   │   │   └── index.ts
+   │   │   ├── utils/          # Utility functions
+   │   │   │   ├── formatters.ts
+   │   │   │   ├── validators.ts
+   │   │   │   ├── constants.ts
+   │   │   │   └── helpers.ts
+   │   │   └── constants/      # Application constants
+   │   │       ├── routes.ts
+   │   │       ├── api.ts
+   │   │       └── config.ts
+   │   │
+   │   └── styles/             # 🎨 Styling (DRY)
+   │       ├── globals.css
+   │       ├── components.css  # Component-specific styles
+   │       └── utilities.css   # Utility classes
+   │
+   ├── public/                 # Static assets
+   ├── tests/                  # Testing
+   │   ├── __mocks__/         # Mock implementations
+   │   ├── components/        # Component tests
+   │   ├── modules/           # Module tests
+   │   ├── e2e/              # End-to-end tests
+   │   └── utils/            # Test utilities
+   │
+   ├── docs/                  # Documentation
+   │   ├── components/        # Component documentation
+   │   └── modules/          # Module documentation
+   │
+   ├── .storybook/           # Storybook configuration
+   ├── tailwind.config.js    # Tailwind configuration
+   ├── next.config.js        # Next.js configuration
+   ├── tsconfig.json         # TypeScript configuration
+   └── package.json          # Dependencies
+   ```
+
+2. **Frontend SOLID Principles Implementation**
+   ```typescript
+   // ✅ Single Responsibility Principle
+   // Each component has one clear purpose
+   
+   // ❌ BAD: Component doing everything
+   const Dashboard = () => {
+     // Authentication logic
+     // Data fetching
+     // Chart rendering
+     // State management
+     // API calls
+   }
+   
+   // ✅ GOOD: Separated responsibilities
+   const Dashboard = () => {
+     const { user } = useAuth()           // Auth responsibility
+     const { data } = useQueryData()      // Data fetching responsibility
+     const { charts } = useCharts()       // Chart responsibility
+     
+     return (
+       <DashboardLayout>              {/* Layout responsibility */}
+         <QueryInterface />           {/* Query responsibility */}
+         <ChartRenderer data={data} /> {/* Rendering responsibility */}
+       </DashboardLayout>
+     )
+   }
+   
+   // ✅ Open/Closed Principle - Extensible chart system
+   interface ChartProps {
+     data: ChartData
+     config: ChartConfig
+   }
+   
+   // Base chart interface
+   const BaseChart: React.FC<ChartProps> = ({ data, config }) => {
+     // Common chart logic
+   }
+   
+   // Specific implementations (can add new ones without modifying existing)
+   const BarChart: React.FC<ChartProps> = (props) => <BaseChart {...props} type="bar" />
+   const LineChart: React.FC<ChartProps> = (props) => <BaseChart {...props} type="line" />
+   const PieChart: React.FC<ChartProps> = (props) => <BaseChart {...props} type="pie" />
+   
+   // ✅ Liskov Substitution Principle - Interchangeable API services
+   interface ApiService {
+     get<T>(url: string): Promise<T>
+     post<T>(url: string, data: any): Promise<T>
+   }
+   
+   class HttpApiService implements ApiService {
+     async get<T>(url: string): Promise<T> { /* HTTP implementation */ }
+     async post<T>(url: string, data: any): Promise<T> { /* HTTP implementation */ }
+   }
+   
+   class MockApiService implements ApiService {
+     async get<T>(url: string): Promise<T> { /* Mock implementation */ }
+     async post<T>(url: string, data: any): Promise<T> { /* Mock implementation */ }
+   }
+   
+   // ✅ Interface Segregation Principle - Small, focused interfaces
+   interface Readable {
+     read(): Promise<Data>
+   }
+   
+   interface Writable {
+     write(data: Data): Promise<void>
+   }
+   
+   interface Queryable {
+     query(sql: string): Promise<QueryResult>
+   }
+   
+   // Components implement only what they need
+   const DataViewer: React.FC = () => {
+     const dataService: Readable = useDataService()
+     // Only needs read capability
+   }
+   
+   // ✅ Dependency Inversion Principle - Depend on abstractions
+   const QueryInterface: React.FC<{ apiService: ApiService }> = ({ apiService }) => {
+     // Depends on ApiService interface, not concrete implementation
+     const handleQuery = async (query: string) => {
+       const result = await apiService.post('/queries', { query })
+       return result
+     }
+   }
+   ```
+
+3. **Frontend DRY Implementation**
+   ```typescript
+   // ✅ DRY: Reusable custom hooks
+   const useApi = <T>(url: string) => {
+     const [data, setData] = useState<T | null>(null)
+     const [loading, setLoading] = useState(false)
+     const [error, setError] = useState<string | null>(null)
+     
+     // Reusable API logic
+     const fetchData = useCallback(async () => {
+       setLoading(true)
+       try {
+         const response = await apiClient.get<T>(url)
+         setData(response)
+       } catch (err) {
+         setError(err.message)
+       } finally {
+         setLoading(false)
+       }
+     }, [url])
+     
+     return { data, loading, error, refetch: fetchData }
+   }
+   
+   // ✅ DRY: Reusable form validation
+   const validationSchemas = {
+     email: z.string().email('Invalid email format'),
+     password: z.string().min(8, 'Password must be at least 8 characters'),
+     required: (field: string) => z.string().min(1, `${field} is required`)
+   }
+   
+   // ✅ DRY: Reusable UI components with consistent styling
+   const Button: React.FC<ButtonProps> = ({ 
+     variant = 'primary', 
+     size = 'md', 
+     children, 
+     ...props 
+   }) => {
+     const baseClasses = 'font-medium rounded-lg transition-colors'
+     const variantClasses = {
+       primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+       secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900',
+       danger: 'bg-red-600 hover:bg-red-700 text-white'
+     }
+     const sizeClasses = {
+       sm: 'px-3 py-1.5 text-sm',
+       md: 'px-4 py-2 text-base',
+       lg: 'px-6 py-3 text-lg'
+     }
+     
+     const className = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`
+     
+     return <button className={className} {...props}>{children}</button>
+   }
+   
+   // ✅ DRY: Centralized API configuration
+   const apiConfig = {
+     baseURL: process.env.NEXT_PUBLIC_API_URL,
+     timeout: 10000,
+     headers: {
+       'Content-Type': 'application/json'
+     }
+   }
+   
+   // ✅ DRY: Reusable error handling
+   const useErrorHandler = () => {
+     const showError = useCallback((error: Error) => {
+       // Centralized error handling logic
+       console.error(error)
+       toast.error(error.message)
+     }, [])
+     
+     return { showError }
+   }
+   ```
+
+4. **API Integration Architecture**
+   ```typescript
+   // 🔌 Clean API integration with dependency inversion
+   
+   // Abstract API service interface
+   interface IApiService {
+     auth: {
+       register(data: RegisterData): Promise<AuthResponse>
+       login(data: LoginData): Promise<AuthResponse>
+       verifyOTP(data: OTPData): Promise<AuthResponse>
+       logout(): Promise<void>
+     }
+     dataSources: {
+       list(): Promise<DataSource[]>
+       create(data: CreateDataSourceData): Promise<DataSource>
+       test(id: string): Promise<ConnectionStatus>
+       delete(id: string): Promise<void>
+     }
+     analytics: {
+       query(data: QueryData): Promise<QueryResult>
+       history(): Promise<QueryHistory[]>
+       insights(dataSourceId: string): Promise<Insight[]>
+     }
+     charts: {
+       generate(data: ChartData): Promise<Chart>
+       types(): Promise<ChartType[]>
+       export(chartId: string, format: ExportFormat): Promise<Blob>
+     }
+   }
+   
+   // Concrete implementation
+   class ApiService implements IApiService {
+     constructor(private httpClient: HttpClient) {}
+     
+     auth = {
+       register: (data: RegisterData) => 
+         this.httpClient.post<AuthResponse>('/auth/register', data),
+       login: (data: LoginData) => 
+         this.httpClient.post<AuthResponse>('/auth/login', data),
+       // ... other methods
+     }
+     
+     // ... other service implementations
+   }
+   
+   // Dependency injection in React
+   const ApiProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+     const apiService = useMemo(() => new ApiService(httpClient), [])
+     
+     return (
+       <ApiContext.Provider value={apiService}>
+         {children}
+       </ApiContext.Provider>
+     )
+   }
+   
+   // Usage in components
+   const LoginForm: React.FC = () => {
+     const apiService = useContext(ApiContext)
+     const { showError } = useErrorHandler()
+     
+     const handleLogin = async (data: LoginData) => {
+       try {
+         const response = await apiService.auth.login(data)
+         // Handle success
+       } catch (error) {
+         showError(error)
+       }
+     }
+   }
+   ```
+
+3. **Free Tier Deployment Strategy**
+   ```yaml
+   # Deployment pipeline (all free)
+   
+   Development:
+     - Local development server
+     - Backend API at localhost:8000
+     - Hot reload for rapid iteration
+   
+   Staging:
+     - Vercel preview deployments
+     - Automatic PR previews
+     - Backend on Railway staging
+   
+   Production:
+     - Vercel production deployment
+     - Custom domain (free)
+     - Backend on Railway production
+     - Automatic SSL certificates
+   ```
+
+**Success Criteria:**
+- Frontend architecture documented and approved
+- Free deployment strategy validated
+- API integration plan complete
+- Ready to start frontend development when backend is revenue-positive
+
+## 🎨 PHASE 6: Frontend Development (Weeks 10-12) - **FUTURE PHASE**
+
+### Objective: Build frontend only after backend generates revenue
+### Duration: 3 weeks (when ready)
+
+**Prerequisites for starting frontend:**
+- ✅ Backend API is 100% functional
+- ✅ At least 10 API users providing feedback
+- ✅ Revenue stream established (API subscriptions)
+- ✅ Free tier limits are being approached
+
+#### Week 10-12: Frontend Implementation (Future)
 
 #### Week 9: Dashboard UI Components
 
@@ -1300,6 +2056,64 @@ A working BI platform where users can:
 - Add file upload functionality for authenticated users
 ---
 
+## � ***FREE SERVICES STRATEGY & LIMITS**
+
+### **Hosting & Infrastructure (FREE)**
+| Service | Free Tier | Upgrade Trigger | Monthly Cost After |
+|---------|-----------|-----------------|-------------------|
+| **Railway** | 512MB RAM, $5 credit/month | >512MB RAM or >$5 usage | $0.000463/GB-hour |
+| **Render** | 512MB RAM, 100GB bandwidth | >512MB or >100GB | $7/month (512MB) |
+| **Supabase** | 500MB DB, 2GB bandwidth | >500MB or >2GB | $25/month |
+| **Upstash Redis** | 10K requests/day | >10K requests | $0.2/100K requests |
+| **Vercel** (Frontend) | 100GB bandwidth | >100GB or need teams | $20/month |
+
+### **AI & Analytics (FREE)**
+| Service | Free Tier | Upgrade Trigger | Cost After |
+|---------|-----------|-----------------|------------|
+| **Groq API** | 14,400 requests/day | >14.4K requests | Contact for pricing |
+| **OpenAI** | $5 credit (new accounts) | Credit exhausted | $0.002/1K tokens |
+| **Hugging Face** | 30K characters/month | >30K characters | $9/month |
+
+### **Email & Communication (FREE)**
+| Service | Free Tier | Upgrade Trigger | Cost After |
+|---------|-----------|-----------------|------------|
+| **Gmail SMTP** | 500 emails/day | >500 emails/day | Google Workspace $6/user |
+| **Resend** | 3K emails/month | >3K emails | $20/month (50K emails) |
+| **Mailgun** | 5K emails/month | >5K emails | $35/month (50K emails) |
+
+### **Storage & Files (FREE)**
+| Service | Free Tier | Upgrade Trigger | Cost After |
+|---------|-----------|-----------------|------------|
+| **Cloudinary** | 25GB storage, 25GB bandwidth | >25GB | $99/month (100GB) |
+| **GitHub LFS** | 1GB storage | >1GB | $5/month (50GB) |
+| **Vercel Blob** | 1GB storage | >1GB | $20/month (100GB) |
+
+### **Monitoring & Analytics (FREE)**
+| Service | Free Tier | Upgrade Trigger | Cost After |
+|---------|-----------|-----------------|------------|
+| **Sentry** | 5K errors/month | >5K errors | $26/month (50K errors) |
+| **LogRocket** | 1K sessions/month | >1K sessions | $99/month (10K sessions) |
+| **Mixpanel** | 100K events/month | >100K events | $25/month (1M events) |
+
+### **Estimated Monthly Costs by User Growth**
+```
+0-100 users:     $0/month (all free tiers)
+100-1K users:    $25-50/month (database upgrade)
+1K-10K users:    $100-200/month (hosting + AI)
+10K+ users:      $500+/month (full paid services)
+```
+
+### **Revenue Breakeven Analysis**
+```
+Target: Break even at 100 users
+- 100 users × $9/month = $900 revenue
+- Costs at 100 users: ~$50/month
+- Profit margin: 94% ($850/month)
+- Time to profitability: 2-3 months after launch
+```
+
+---
+
 ## 📋 **Implementation Checklist by Phase**
 
 ### ⚠️ Phase 1: Authentication & Security (IN PROGRESS - 70% Complete)
@@ -1412,93 +2226,378 @@ A working BI platform where users can:
 | **Zustand** | State Management | 4.4+ |
 | **React Query** | Data Fetching | 5.0+ |
 
-### **DevOps & Infrastructure**
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Docker** | Containerization | Latest |
-| **Kubernetes** | Orchestration | 1.28+ |
-| **AWS/GCP** | Cloud Platform | Latest |
-| **Terraform** | Infrastructure | 1.5+ |
-| **GitHub Actions** | CI/CD | Latest |
-| **Prometheus** | Monitoring | Latest |
+### **DevOps & Infrastructure (FREE TIER)**
+| Technology | Purpose | Free Tier Limits | Cost When Scaling |
+|------------|---------|------------------|-------------------|
+| **Railway** | Backend Hosting | 512MB RAM, $5 credit | $0.000463/GB-hour |
+| **Render** | Alternative Hosting | 512MB RAM, 100GB bandwidth | $7/month for 512MB |
+| **Vercel** | Frontend Hosting (Future) | 100GB bandwidth, 1000 serverless executions | $20/month pro |
+| **GitHub Actions** | CI/CD | 2000 minutes/month | $0.008/minute after |
+| **Upstash** | Redis Cache | 10K requests/day | $0.2/100K requests |
+| **Supabase** | PostgreSQL | 500MB database, 2GB bandwidth | $25/month pro |
 
 ---
 
-## **Python Backend Project Structure**
+## **Modular Project Structure (SOLID/DRY Compliant)**
 
 ```
 smart-bi-platform/
-├── backend/                        # Python FastAPI Backend
+├── backend/                        # Python FastAPI Backend (Modular Design)
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py                 # FastAPI application entry
-│   │   ├── config/
+│   │   ├── main.py                 # FastAPI app factory pattern
+│   │   │
+│   │   ├── core/                   # 🏛️ Core Infrastructure (DRY)
 │   │   │   ├── __init__.py
-│   │   │   ├── settings.py         # Environment configuration
-│   │   │   ├── database.py         # Database connection setup
-│   │   │   └── redis_config.py     # Redis configuration
-│   │   ├── models/
+│   │   │   ├── config.py           # Centralized configuration
+│   │   │   ├── database.py         # Database factory & connection pool
+│   │   │   ├── security.py         # JWT, hashing, encryption utilities
+│   │   │   ├── middleware.py       # Reusable middleware components
+│   │   │   ├── exceptions.py       # Custom exception hierarchy
+│   │   │   ├── dependencies.py     # FastAPI dependency injection
+│   │   │   └── events.py           # Application lifecycle events
+│   │   │
+│   │   ├── shared/                 # 🔄 Shared Utilities (DRY)
 │   │   │   ├── __init__.py
-│   │   │   ├── user.py             # SQLAlchemy User model
-│   │   │   ├── data_source.py      # Data source models
-│   │   │   ├── dashboard.py        # Dashboard configuration
-│   │   │   └── query.py            # Query execution models
-│   │   ├── api/
+│   │   │   ├── validators.py       # Reusable validation functions
+│   │   │   ├── formatters.py       # Response/data formatters
+│   │   │   ├── constants.py        # Application constants
+│   │   │   ├── enums.py           # Shared enumerations
+│   │   │   ├── types.py           # Custom type definitions
+│   │   │   └── utils.py           # General utility functions
+│   │   │
+│   │   ├── modules/                # 📦 Feature Modules (Single Responsibility)
 │   │   │   ├── __init__.py
-│   │   │   ├── auth.py             # Authentication endpoints
-│   │   │   ├── data.py             # Data management endpoints
-│   │   │   ├── analytics.py        # AI analytics endpoints
-│   │   │   └── dashboards.py       # Dashboard endpoints
-│   │   ├── services/
+│   │   │   │
+│   │   │   ├── auth/              # 🔐 Authentication Module
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── models.py      # User, OTP, DeviceTrust models
+│   │   │   │   ├── schemas.py     # Pydantic request/response schemas
+│   │   │   │   ├── service.py     # Business logic (Single Responsibility)
+│   │   │   │   ├── repository.py  # Data access layer
+│   │   │   │   ├── routes.py      # API endpoints
+│   │   │   │   ├── dependencies.py # Auth-specific dependencies
+│   │   │   │   └── exceptions.py  # Auth-specific exceptions
+│   │   │   │
+│   │   │   ├── data_sources/      # 📊 Data Source Module
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── models.py      # DataSource, Connection models
+│   │   │   │   ├── schemas.py     # Connection schemas
+│   │   │   │   ├── connectors/    # 🔌 Connector Implementations (Open/Closed)
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── base.py    # Abstract DataConnector interface
+│   │   │   │   │   ├── postgresql.py # PostgreSQL implementation
+│   │   │   │   │   ├── mysql.py   # MySQL implementation
+│   │   │   │   │   ├── csv.py     # CSV file implementation
+│   │   │   │   │   └── factory.py # Connector factory pattern
+│   │   │   │   ├── service.py     # Data source business logic
+│   │   │   │   ├── repository.py  # Data source persistence
+│   │   │   │   └── routes.py      # Data source API endpoints
+│   │   │   │
+│   │   │   ├── analytics/         # 🧠 Analytics & AI Module
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── models.py      # Query, QueryHistory models
+│   │   │   │   ├── schemas.py     # Query request/response schemas
+│   │   │   │   ├── engines/       # 🤖 AI Engine Implementations (Strategy Pattern)
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── base.py    # Abstract AI engine interface
+│   │   │   │   │   ├── groq.py    # Groq LLaMA implementation
+│   │   │   │   │   ├── openai.py  # OpenAI implementation
+│   │   │   │   │   └── factory.py # AI engine factory
+│   │   │   │   ├── processors/    # 📈 Data Processing (Single Responsibility)
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── sql_generator.py # NL to SQL conversion
+│   │   │   │   │   ├── query_optimizer.py # SQL optimization
+│   │   │   │   │   ├── result_formatter.py # Result formatting
+│   │   │   │   │   └── insight_generator.py # AI insights
+│   │   │   │   ├── service.py     # Analytics business logic
+│   │   │   │   ├── repository.py  # Query persistence
+│   │   │   │   └── routes.py      # Analytics API endpoints
+│   │   │   │
+│   │   │   ├── visualizations/    # 📊 Visualization Module
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── models.py      # Chart, Dashboard models
+│   │   │   │   ├── schemas.py     # Chart configuration schemas
+│   │   │   │   ├── generators/    # 🎨 Chart Generators (Strategy Pattern)
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── base.py    # Abstract chart generator
+│   │   │   │   │   ├── bar_chart.py # Bar chart implementation
+│   │   │   │   │   ├── line_chart.py # Line chart implementation
+│   │   │   │   │   ├── pie_chart.py # Pie chart implementation
+│   │   │   │   │   └── factory.py # Chart generator factory
+│   │   │   │   ├── service.py     # Visualization business logic
+│   │   │   │   ├── repository.py  # Chart/dashboard persistence
+│   │   │   │   └── routes.py      # Visualization API endpoints
+│   │   │   │
+│   │   │   └── notifications/     # 📧 Notification Module
+│   │   │       ├── __init__.py
+│   │   │       ├── models.py      # Notification models
+│   │   │       ├── schemas.py     # Notification schemas
+│   │   │       ├── providers/     # 📨 Notification Providers (Strategy Pattern)
+│   │   │       │   ├── __init__.py
+│   │   │       │   ├── base.py    # Abstract notification provider
+│   │   │       │   ├── email.py   # Email provider (SMTP)
+│   │   │       │   ├── sms.py     # SMS provider (future)
+│   │   │       │   └── webhook.py # Webhook provider (future)
+│   │   │       ├── service.py     # Notification business logic
+│   │   │       └── routes.py      # Notification API endpoints
+│   │   │
+│   │   ├── api/                    # 🌐 API Layer (Interface Segregation)
 │   │   │   ├── __init__.py
-│   │   │   ├── auth_service.py     # Authentication logic
-│   │   │   ├── data_connector.py   # Database connections
-│   │   │   ├── ai_service.py       # LangChain + Groq integration
-│   │   │   ├── chart_service.py    # Plotly chart generation
-│   │   │   └── email_service.py    # Email notifications
-│   │   ├── core/
-│   │   │   ├── __init__.py
-│   │   │   ├── security.py         # JWT & password hashing
-│   │   │   ├── dependencies.py     # FastAPI dependencies
-│   │   │   └── middleware.py       # Custom middleware
-│   │   ├── utils/
-│   │   │   ├── __init__.py
-│   │   │   ├── data_processing.py  # Pandas data operations
-│   │   │   ├── sql_generator.py    # NL-to-SQL conversion
-│   │   │   └── validators.py       # Pydantic validators
-│   │   ├── tasks/
-│   │   │   ├── __init__.py
-│   │   │   ├── celery_app.py       # Celery configuration
-│   │   │   ├── data_tasks.py       # Background data processing
-│   │   │   └── email_tasks.py      # Async email sending
-│   │   └── tests/
+│   │   │   ├── v1/                # API versioning
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── router.py      # Main API router
+│   │   │   │   └── endpoints/     # Endpoint aggregation
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── auth.py    # Auth endpoints
+│   │   │   │       ├── data.py    # Data endpoints
+│   │   │   │       ├── analytics.py # Analytics endpoints
+│   │   │   │       └── charts.py  # Chart endpoints
+│   │   │   └── middleware/        # API-specific middleware
+│   │   │       ├── __init__.py
+│   │   │       ├── cors.py        # CORS handling
+│   │   │       ├── rate_limit.py  # Rate limiting
+│   │   │       └── logging.py     # Request logging
+│   │   │
+│   │   └── tests/                  # 🧪 Comprehensive Testing
 │   │       ├── __init__.py
-│   │       ├── test_auth.py        # Authentication tests
-│   │       ├── test_data.py        # Data processing tests
-│   │       └── test_analytics.py   # AI analytics tests
+│   │       ├── conftest.py        # Pytest configuration
+│   │       ├── unit/              # Unit tests (per module)
+│   │       │   ├── test_auth/
+│   │       │   ├── test_data_sources/
+│   │       │   ├── test_analytics/
+│   │       │   └── test_visualizations/
+│   │       ├── integration/       # Integration tests
+│   │       │   ├── test_api/
+│   │       │   ├── test_database/
+│   │       │   └── test_ai_engines/
+│   │       └── e2e/              # End-to-end tests
+│   │           ├── test_user_flows/
+│   │           └── test_api_workflows/
+│   │
 │   ├── alembic/                    # Database migrations
-│   │   ├── versions/
-│   │   ├── env.py
-│   │   └── alembic.ini
-│   ├── requirements.txt            # Python dependencies
-│   ├── pyproject.toml             # Project configuration
-│   ├── Dockerfile                 # Docker configuration
-│   └── docker-compose.yml         # Local development setup
-├── frontend/                       # Next.js React Frontend
-│   ├── components/
-│   │   ├── auth/                   # Authentication components
-│   │   ├── charts/                 # Chart visualization components  
-│   │   ├── dashboard/              # Dashboard builder components
-│   │   └── common/                 # Reusable UI components
-│   ├── pages/
-│   │   ├── auth/                   # Authentication pages
-│   │   ├── dashboard/              # Dashboard management
-│   │   ├── data/                   # Data source management
-│   │   └── api/                    # Next.js API routes
-│   └── services/                   # Frontend API services
-├── docs/                          # Documentation
-├── kubernetes/                    # K8s deployment configs
-└── scripts/                       # Build and deployment scripts
+│   ├── scripts/                    # Deployment & utility scripts
+│   ├── requirements/               # Modular requirements
+│   │   ├── base.txt               # Core dependencies
+│   │   ├── dev.txt                # Development dependencies
+│   │   ├── test.txt               # Testing dependencies
+│   │   └── prod.txt               # Production dependencies
+│   ├── docker/                     # Docker configurations
+│   │   ├── Dockerfile.dev         # Development container
+│   │   ├── Dockerfile.prod        # Production container
+│   │   └── docker-compose.yml     # Multi-service setup
+│   └── docs/                       # Module documentation
+│       ├── api/                   # API documentation
+│       ├── architecture/          # Architecture decisions
+│       └── deployment/            # Deployment guides
+│
+├── frontend/                       # 🎨 Modular Frontend (Future Phase)
+│   ├── src/
+│   │   ├── components/            # 🧩 Reusable Components (DRY)
+│   │   │   ├── common/           # Shared UI components
+│   │   │   ├── forms/            # Form components
+│   │   │   └── charts/           # Chart components
+│   │   ├── modules/              # 📦 Feature Modules (Single Responsibility)
+│   │   │   ├── auth/             # Authentication module
+│   │   │   ├── dashboard/        # Dashboard module
+│   │   │   ├── data-sources/     # Data source module
+│   │   │   └── analytics/        # Analytics module
+│   │   ├── services/             # 🔌 API Services (Dependency Inversion)
+│   │   │   ├── api/              # API client abstractions
+│   │   │   ├── auth/             # Authentication service
+│   │   │   └── storage/          # Local storage service
+│   │   ├── hooks/                # 🪝 Reusable React Hooks (DRY)
+│   │   ├── utils/                # 🛠️ Utility Functions (DRY)
+│   │   └── types/                # 📝 TypeScript Definitions
+│   └── tests/                    # Frontend testing
+│
+├── shared/                        # 🤝 Shared Code (DRY)
+│   ├── types/                    # Shared TypeScript/Python types
+│   ├── constants/                # Shared constants
+│   └── schemas/                  # Shared data schemas
+│
+└── docs/                         # 📚 Project Documentation
+    ├── architecture/             # Architecture decisions
+    ├── api/                      # API documentation
+    ├── deployment/               # Deployment guides
+    └── development/              # Development guides
+```
+
+### **Key Modular Design Benefits**
+
+#### **🔄 DRY Implementation**
+- **Shared utilities**: Common validation, formatting, constants
+- **Reusable components**: Base classes, interfaces, factories
+- **Configuration management**: Centralized settings
+- **Common middleware**: Authentication, logging, error handling
+
+#### **🏛️ SOLID Compliance**
+- **Single Responsibility**: Each module/class has one purpose
+- **Open/Closed**: Easy to extend without modifying existing code
+- **Liskov Substitution**: Implementations are interchangeable
+- **Interface Segregation**: Small, focused interfaces
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+#### **📦 Module Independence**
+- Each module can be developed/tested independently
+- Clear boundaries and interfaces between modules
+- Easy to add new features without affecting existing ones
+- Simplified debugging and maintenance
+
+---
+
+## 🏗️ **DEVELOPMENT PRACTICES & CODE QUALITY**
+
+### **🧪 Testing Strategy (Modular)**
+```python
+# ✅ Unit Tests (per module)
+class TestAuthService:
+    def test_create_user_success(self):
+        # Test single responsibility
+        pass
+    
+    def test_create_user_duplicate_email(self):
+        # Test error handling
+        pass
+
+# ✅ Integration Tests (module interactions)
+class TestDataSourceIntegration:
+    def test_postgresql_connection_flow(self):
+        # Test connector + service + repository
+        pass
+
+# ✅ Contract Tests (interface compliance)
+class TestDataConnectorContract:
+    def test_all_connectors_implement_interface(self):
+        # Ensure Liskov Substitution Principle
+        pass
+```
+
+### **📏 Code Quality Standards**
+```python
+# ✅ Type Hints (everywhere)
+from typing import Optional, List, Dict, Protocol
+
+def process_query(
+    query: str, 
+    data_source_id: int,
+    user_id: Optional[int] = None
+) -> Dict[str, Any]:
+    pass
+
+# ✅ Docstrings (Google style)
+def generate_sql(self, natural_language: str) -> str:
+    """
+    Convert natural language query to SQL.
+    
+    Args:
+        natural_language: User's question in plain English
+        
+    Returns:
+        Generated SQL query string
+        
+    Raises:
+        InvalidQueryError: If query cannot be parsed
+        AIServiceError: If AI service is unavailable
+    """
+    pass
+
+# ✅ Error Handling (specific exceptions)
+class DataSourceError(Exception):
+    """Base exception for data source operations"""
+    pass
+
+class ConnectionError(DataSourceError):
+    """Raised when connection to data source fails"""
+    pass
+```
+
+### **🔧 Development Tools & Automation**
+```yaml
+# pyproject.toml - Tool configuration
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+addopts = "--cov=app --cov-report=html --cov-report=term-missing"
+
+# Pre-commit hooks
+repos:
+  - repo: https://github.com/psf/black
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/isort
+    hooks:
+      - id: isort
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    hooks:
+      - id: mypy
+```
+
+### **📋 Code Review Checklist**
+- [ ] **SOLID Principles**: Does code follow single responsibility?
+- [ ] **DRY Compliance**: Is there any code duplication?
+- [ ] **Type Safety**: Are all functions properly typed?
+- [ ] **Error Handling**: Are exceptions specific and handled?
+- [ ] **Testing**: Are unit tests included for new features?
+- [ ] **Documentation**: Are docstrings and comments clear?
+- [ ] **Performance**: Are there any obvious performance issues?
+- [ ] **Security**: Are inputs validated and sanitized?
+
+### **🚀 Continuous Integration Pipeline**
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements/dev.txt
+      
+      - name: Code formatting (Black)
+        run: black --check app/
+      
+      - name: Import sorting (isort)
+        run: isort --check-only app/
+      
+      - name: Type checking (mypy)
+        run: mypy app/
+      
+      - name: Linting (flake8)
+        run: flake8 app/
+      
+      - name: Security check (bandit)
+        run: bandit -r app/
+      
+      - name: Run tests
+        run: pytest --cov=app --cov-report=xml
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
 ```
 
 ---
