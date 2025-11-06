@@ -52,8 +52,9 @@ smart-bi-platform/
 │   └── .env.example       # Environment configuration template
 ├── .gitignore             # Git ignore rules
 └── README.md              # Project documentation
-```##
- Quick Start
+```
+
+## Quick Start
 
 ### Backend Setup (Python FastAPI)
 
