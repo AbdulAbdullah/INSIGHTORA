@@ -60,7 +60,7 @@ smart-bi-platform/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/smart-bi-platform
+git clone https://github.com/AbdulAbdullah/INSIGHTORA.git
 cd smart-bi-platform/backend
 
 # Create virtual environment
