@@ -1,0 +1,48 @@
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+cryptography==41.0.8
+
+# Data Processing
+pandas==2.1.4
+numpy==1.25.2
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# AI/ML
+groq==0.4.1
+langchain==0.1.0
+langchain-groq==0.0.1
+openai==1.6.1
+
+# Caching & Background Tasks
+redis==5.0.1
+celery==5.3.4
+
+# Email
+email-validator==2.1.0
+aiosmtplib==3.0.1
+
+# HTTP Client
+httpx==0.25.2
+aiofiles==23.2.1
+
+# Validation & Utilities
+phonenumbers==8.13.26
+python-slugify==8.0.1
+
+# Logging & Monitoring
+structlog==23.2.0

@@ -61,10 +61,54 @@ jspm_packages/
 
 # Environment variables
 .env
+.env.*
+*.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Backend specific
+backend/.env
+backend/.env.*
+backend/uploads/
+backend/__pycache__/
+backend/**/__pycache__/
+
+# Test files and development scripts
+backend/test_*.py
+backend/run_test_*.py
+backend/simple_test.py
+backend/TEST_*.md
+backend/*_test.py
+
+# Implementation plans and internal docs
+backend/*_IMPLEMENTATION_PLAN.md
+backend/*_PLAN.md
+BI_PROJECT_PLAN.md
+STATUS.md
+
+# Kiro specs (internal development)
+.kiro/
+
+# Additional security
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+config/local.*
+config/production.*
+
+# IDE and development
+.vscode/settings.json
+.idea/workspace.xml
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
 
 # Logs
 logs

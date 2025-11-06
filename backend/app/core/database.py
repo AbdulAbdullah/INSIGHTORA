@@ -1,116 +1,145 @@
 """
-Database Configuration and Session Management
+Handles database connections using SQLAlchemy with async support.
 """
 
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-import asyncio
-from typing import AsyncGenerator, Generator
+import logging
 
-from app.core.config import get_database_config
+from app.core.config import settings
 
-# Get database configuration
-db_config = get_database_config()
+logger = logging.getLogger(__name__)
 
-# Create async engine for FastAPI
-async_engine = create_async_engine(
-    db_config["url"].replace("postgresql://", "postgresql+asyncpg://"),
-    pool_size=db_config["pool_size"],
-    max_overflow=db_config["max_overflow"],
-    pool_timeout=db_config["pool_timeout"],
-    pool_recycle=db_config["pool_recycle"],
-    echo=db_config["echo"],
-)
 
-# Create sync engine for Alembic migrations and blocking operations
-sync_engine = create_engine(
-    db_config["url"],
-    pool_size=db_config["pool_size"],
-    max_overflow=db_config["max_overflow"],
-    pool_timeout=db_config["pool_timeout"],
-    pool_recycle=db_config["pool_recycle"],
-    echo=db_config["echo"],
-)
-
-# Session makers
-AsyncSessionLocal = async_sessionmaker(
-    async_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
-
-SessionLocal = sessionmaker(
-    sync_engine,
-    autocommit=False,
-    autoflush=False
-)
-
-# Base class for models
 Base = declarative_base()
 
-# For backward compatibility (will be replaced by async_engine)
-engine = sync_engine
+metadata = MetaData()
+
+engine = None
+async_engine = None
+SessionLocal = None
+AsyncSessionLocal = None
 
 
-async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+def create_database_engines():
+    """Create database engines with connection pooling."""
+    global engine, async_engine, SessionLocal, AsyncSessionLocal
+    
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        echo=settings.DEBUG
+    )
+    
+    async_engine = create_async_engine(
+        settings.ASYNC_DATABASE_URL,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        echo=settings.DEBUG
+    )
+    
+    SessionLocal = sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=engine
+    )
+    
+    AsyncSessionLocal = async_sessionmaker(
+        async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    )
+    
+    logger.info("Database engines created successfully")
+
+
+async def init_db():
+    """Initialize database and create tables."""
+    try:
+        from app.modules.auth.models import User, OTP, DeviceTrust
+        
+        if async_engine is None:
+            create_database_engines()
+        
+        async with async_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        logger.info("Database initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        raise
+
+
+async def get_async_session() -> AsyncSession:
     """
-    Async database session dependency for FastAPI
+    Dependency to get async database session.
+    
+    Yields:
+        AsyncSession: Database session
     """
+    if AsyncSessionLocal is None:
+        create_database_engines()
+    
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
-        except Exception:
+        except Exception as e:
             await session.rollback()
+            logger.error(f"Database session error: {e}")
             raise
         finally:
             await session.close()
 
 
-def get_db() -> Generator[SessionLocal, None, None]:
+def get_sync_session():
     """
-    Sync database session dependency (for compatibility)
+    Dependency to get synchronous database session.
+    
+    Yields:
+        Session: Database session
     """
+    if SessionLocal is None:
+        create_database_engines()
+    
     db = SessionLocal()
     try:
         yield db
-        db.commit()
-    except Exception:
+    except Exception as e:
         db.rollback()
+        logger.error(f"Database session error: {e}")
         raise
     finally:
         db.close()
 
 
-async def init_db():
+async def check_database_connection() -> bool:
     """
-    Initialize database tables
-    """
-    async with async_engine.begin() as conn:
-        # Import all models to ensure they're registered
-        from app.models import user, data_source, dashboard, query
-        
-        # Create all tables
-        await conn.run_sync(Base.metadata.create_all)
-
-
-async def close_db():
-    """
-    Close database connections
-    """
-    await async_engine.dispose()
-
-
-# Database health check
-async def check_db_health() -> bool:
-    """
-    Check if database is healthy
+    Check if database connection is healthy.
+    
+    Returns:
+        bool: True if connection is healthy
     """
     try:
-        async with AsyncSessionLocal() as session:
-            await session.execute("SELECT 1")
-            return True
-    except Exception:
+        if async_engine is None:
+            create_database_engines()
+        
+        async with async_engine.begin() as conn:
+            await conn.execute("SELECT 1")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
         return False
+
+
+get_db = get_sync_session
+
+create_database_engines()

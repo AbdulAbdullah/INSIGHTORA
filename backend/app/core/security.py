@@ -1,59 +1,138 @@
 """
-Security utilities for authentication and authorization
+Security Utilities
+
+JWT, hashing, encryption utilities following security best practices.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, Union, Any
-from jose import JWTError, jwt
+from typing import Optional, Dict, Any
 from passlib.context import CryptContext
-from pydantic import BaseModel
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+import secrets
+import hashlib
+from cryptography.fernet import Fernet
+import base64
+import logging
 
 from app.core.config import settings
 
-# Password hashing context
+logger = logging.getLogger(__name__)
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# HTTP Bearer token scheme
-security = HTTPBearer()
+_encryption_key = None
 
 
-class TokenData(BaseModel):
-    """Token data model"""
-    user_id: Optional[int] = None
-    email: Optional[str] = None
-    scopes: list[str] = []
+def get_encryption_key() -> bytes:
+    """Get or generate encryption key for sensitive data."""
+    global _encryption_key
+    if _encryption_key is None:
+        key_material = settings.SECRET_KEY.encode()
+        _encryption_key = base64.urlsafe_b64encode(
+            hashlib.sha256(key_material).digest()
+        )
+    return _encryption_key
 
 
-class Token(BaseModel):
-    """Token response model"""
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def encrypt_sensitive_data(data: str) -> str:
     """
-    Verify a password against its hash
+    Encrypt sensitive data like database credentials.
+    
+    Args:
+        data: Plain text data to encrypt
+        
+    Returns:
+        str: Encrypted data as base64 string
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        fernet = Fernet(get_encryption_key())
+        encrypted_data = fernet.encrypt(data.encode())
+        return base64.urlsafe_b64encode(encrypted_data).decode()
+    except Exception as e:
+        logger.error(f"Encryption failed: {e}")
+        raise
 
 
-def get_password_hash(password: str) -> str:
+def decrypt_sensitive_data(encrypted_data: str) -> str:
     """
-    Hash a password
+    Decrypt sensitive data.
+    
+    Args:
+        encrypted_data: Base64 encoded encrypted data
+        
+    Returns:
+        str: Decrypted plain text data
+    """
+    try:
+        fernet = Fernet(get_encryption_key())
+        decoded_data = base64.urlsafe_b64decode(encrypted_data.encode())
+        decrypted_data = fernet.decrypt(decoded_data)
+        return decrypted_data.decode()
+    except Exception as e:
+        logger.error(f"Decryption failed: {e}")
+        raise
+
+
+def hash_password(password: str) -> str:
+    """
+    Hash a password using bcrypt.
+    
+    Args:
+        password: Plain text password
+        
+    Returns:
+        str: Hashed password
     """
     return pwd_context.hash(password)
 
 
-def create_access_token(
-    data: dict, 
-    expires_delta: Optional[timedelta] = None
-) -> str:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Create JWT access token
+    Verify a password against its hash.
+    
+    Args:
+        plain_password: Plain text password
+        hashed_password: Hashed password
+        
+    Returns:
+        bool: True if password matches
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def generate_otp(length: int = 6) -> str:
+    """
+    Generate a secure OTP.
+    
+    Args:
+        length: Length of OTP (default 6)
+        
+    Returns:
+        str: Generated OTP
+    """
+    return ''.join([str(secrets.randbelow(10)) for _ in range(length)])
+
+
+def generate_device_token() -> str:
+    """
+    Generate a secure device trust token.
+    
+    Returns:
+        str: Device token
+    """
+    return secrets.token_urlsafe(32)
+
+
+def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create JWT access token.
+    
+    Args:
+        data: Data to encode in token
+        expires_delta: Token expiration time
+        
+    Returns:
+        str: JWT token
     """
     to_encode = data.copy()
     
@@ -73,160 +152,95 @@ def create_access_token(
     return encoded_jwt
 
 
-def create_refresh_token(
-    data: dict,
-    expires_delta: Optional[timedelta] = None
-) -> str:
+def create_refresh_token(data: Dict[str, Any]) -> str:
     """
-    Create JWT refresh token
+    Create JWT refresh token.
+    
+    Args:
+        data: Data to encode in token
+        
+    Returns:
+        str: JWT refresh token
     """
     to_encode = data.copy()
-    
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     
     to_encode.update({"exp": expire, "type": "refresh"})
     
     encoded_jwt = jwt.encode(
         to_encode,
-        settings.SECRET_KEY,
+        settings.REFRESH_SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
     
     return encoded_jwt
 
 
-def verify_token(token: str, token_type: str = "access") -> Optional[TokenData]:
+def verify_token(token: str, token_type: str = "access") -> Optional[Dict[str, Any]]:
     """
-    Verify and decode JWT token
+    Verify and decode JWT token.
+    
+    Args:
+        token: JWT token to verify
+        token_type: Type of token ("access" or "refresh")
+        
+    Returns:
+        Dict containing token payload or None if invalid
     """
     try:
+        secret_key = (
+            settings.SECRET_KEY if token_type == "access" 
+            else settings.REFRESH_SECRET_KEY
+        )
+        
         payload = jwt.decode(
             token,
-            settings.SECRET_KEY,
+            secret_key,
             algorithms=[settings.ALGORITHM]
         )
         
-        # Check token type
         if payload.get("type") != token_type:
             return None
             
-        user_id: int = payload.get("sub")
-        email: str = payload.get("email")
-        scopes: list = payload.get("scopes", [])
+        return payload
         
-        if user_id is None:
-            return None
-            
-        token_data = TokenData(
-            user_id=user_id,
-            email=email,
-            scopes=scopes
-        )
-        
-        return token_data
-        
-    except JWTError:
+    except JWTError as e:
+        logger.warning(f"Token verification failed: {e}")
         return None
-
-
-def create_token_pair(user_id: int, email: str, scopes: list[str] = None) -> Token:
-    """
-    Create access and refresh token pair
-    """
-    if scopes is None:
-        scopes = []
-    
-    # Common token data
-    token_data = {
-        "sub": str(user_id),
-        "email": email,
-        "scopes": scopes
-    }
-    
-    # Create tokens
-    access_token = create_access_token(token_data)
-    refresh_token = create_refresh_token(token_data)
-    
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-    )
-
-
-def refresh_access_token(refresh_token: str) -> Optional[str]:
-    """
-    Create new access token from refresh token
-    """
-    token_data = verify_token(refresh_token, token_type="refresh")
-    
-    if token_data is None:
-        return None
-    
-    # Create new access token with same data
-    new_token_data = {
-        "sub": str(token_data.user_id),
-        "email": token_data.email,
-        "scopes": token_data.scopes
-    }
-    
-    return create_access_token(new_token_data)
 
 
 def generate_api_key() -> str:
     """
-    Generate API key for service-to-service communication
+    Generate API key for external integrations.
+    
+    Returns:
+        str: API key
     """
-    import secrets
-    return secrets.token_urlsafe(32)
+    return f"sk_{secrets.token_urlsafe(32)}"
 
 
 def hash_api_key(api_key: str) -> str:
     """
-    Hash API key for storage
-    """
-    return get_password_hash(api_key)
-
-
-def verify_api_key(api_key: str, hashed_api_key: str) -> bool:
-    """
-    Verify API key against its hash
-    """
-    return verify_password(api_key, hashed_api_key)
-
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> dict:
-    """
-    Get current user from JWT token
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    Hash API key for storage.
     
-    try:
-        # Extract token from credentials
-        token = credentials.credentials
+    Args:
+        api_key: Plain API key
         
-        # Verify token
-        token_data = verify_token(token, token_type="access")
+    Returns:
+        str: Hashed API key
+    """
+    return hashlib.sha256(api_key.encode()).hexdigest()
+
+
+def verify_api_key(plain_key: str, hashed_key: str) -> bool:
+    """
+    Verify API key against its hash.
+    
+    Args:
+        plain_key: Plain API key
+        hashed_key: Hashed API key
         
-        if token_data is None:
-            raise credentials_exception
-            
-        # Return user data from token
-        return {
-            "id": token_data.user_id,
-            "email": token_data.email,
-            "scopes": token_data.scopes
-        }
-        
-    except JWTError:
-        raise credentials_exception
+    Returns:
+        bool: True if key matches
+    """
+    return hash_api_key(plain_key) == hashed_key
