@@ -40,8 +40,8 @@ A modern, AI-powered Business Intelligence platform built with Python FastAPI ba
 
 ## Project Structure
 
-```
-smart-bi-platform/
+```.
+├── frontend/               # React frontend
 ├── backend/                 # Python FastAPI backend
 │   ├── app/                # Application code
 │   │   ├── core/           # Core infrastructure
@@ -61,7 +61,7 @@ smart-bi-platform/
 ```bash
 # Clone the repository
 git clone https://github.com/AbdulAbdullah/INSIGHTORA.git
-cd smart-bi-platform/backend
+cd INSIGHTORA/backend
 
 # Create virtual environment
 python -m venv venv
