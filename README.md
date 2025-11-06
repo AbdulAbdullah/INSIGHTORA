@@ -183,4 +183,4 @@ If you encounter any issues:
 
 ---
 
-**Built with FastAPI | Powered by AI | Designed for Enterprise**
+**Built with FastAPI | Designed for Enterprise**
