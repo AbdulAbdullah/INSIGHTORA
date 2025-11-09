@@ -82,6 +82,10 @@ backend/simple_test.py
 backend/TEST_*.md
 backend/*_test.py
 
+# Root-level test files (Rust integration tests)
+test_*.py
+test_rust_*.py
+
 # Implementation plans and internal docs
 backend/*_IMPLEMENTATION_PLAN.md
 backend/*_PLAN.md
@@ -188,3 +192,17 @@ keys/
 *.bak
 *.backup
 /src/generated/prisma
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Compiled Rust libraries (platform-specific, should be built locally)
+*.pyd
+*.so
+*.dylib
+backend/app/core/insightora_core.pyd
+backend/app/core/insightora_core.so
+backend/app/core/insightora_core.dylib
